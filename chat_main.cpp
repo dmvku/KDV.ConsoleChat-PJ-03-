@@ -9,7 +9,7 @@ int main()
 {
 	system("CLS");
 	std::cout << "Welcome to the chat!\n";
-	Chat newChat();
+	Chat newChat;
 
 	std::cout << "Select action:\nl - Login\nr - Register\ne - Exit programm\n";
 	char action{ '\0' };
@@ -19,10 +19,10 @@ int main()
 		switch (action)
 		{
 		case 'l':
-			chat.loginUser();
+			newChat.loginUser();
 			break;
 		case 'r':
-			chat.registerUser();
+			newChat.registerUser();
 			break;
 		case 'e':
 			std::cout << "Exit programm...";

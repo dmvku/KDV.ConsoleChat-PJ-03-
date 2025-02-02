@@ -8,9 +8,9 @@ public:
 	Message(const std::string& from, const std::string& to, const std::string& message);
 	~Message();
 
-	const std::string getFrom() const;
-	const std::string getTo() const;
-	const std::string getMessage() const;
+	const std::string get_From() const;
+	const std::string get_To() const;
+	const std::string get_Message() const;
 
 	/*void set_From(std::string from);
 	void set_To(std::string to);*/

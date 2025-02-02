@@ -1,25 +1,31 @@
 #pragma once
 #include "user_class.h"
 #include "message_class.h"
+#include "exception_class.h"
 
 #include <iostream>
 #include <string>
-#include <memory>
+#include <vector>
+
+using namespace std;
 
 class Chat
 {
 public:
 	Chat() = default;
-	~Chat();	
+	~Chat();
+
+	void registerUser();
+	void loginUser();
+	void chatMenu();
+
+	std::string checkLogin();
+
 
 
 private:
-	std::shared_ptr<User[]> usersInTheChat_{nullptr};
-	std::shared_ptr<Message[]> messagesInTheChatt_{nullptr};
-
-	size_t usersMax_{ 5 };
-	size_t usersCount_{ 0 };
-	size_t messagesMax_{ 25 };
-	size_t messagesCount_{ 0 };
+	std::vector<User> chatUsers_;
+	std::vector<Message> chatMessages_;	
+	std::shared_ptr<User> loginUser_ { nullptr };
 
 };

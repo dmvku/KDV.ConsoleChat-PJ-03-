@@ -8,17 +8,17 @@ Message::~Message()
 
 }
 
-const std::string Message::getFrom() const
+const std::string Message::get_From() const
 {
 	return from_;
 }
 
-const std::string Message::getTo() const
+const std::string Message::get_To() const
 {
 	return to_;
 }
 
-const std::string Message::getMessage() const
+const std::string Message::get_Message() const
 {
 	return message_;
 }
