@@ -127,7 +127,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="chat_class.cpp" />
     <ClCompile Include="chat_main.cpp" />
+    <ClCompile Include="message_class.cpp" />
+    <ClCompile Include="user_class.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="chat_class.h" />
+    <ClInclude Include="message_class.h" />
+    <ClInclude Include="user_class.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

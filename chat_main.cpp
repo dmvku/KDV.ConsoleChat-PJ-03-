@@ -2,11 +2,14 @@
 #include <conio.h>
 //#include <memory>
 
+#include "chat_class.h"
+
 
 int main()
 {
 	system("CLS");
 	std::cout << "Welcome to the chat!\n";
+	Chat newChat();
 
 	std::cout << "Select action:\nl - Login\nr - Register\ne - Exit programm\n";
 	char action{ '\0' };
@@ -16,10 +19,10 @@ int main()
 		switch (action)
 		{
 		case 'l':
-			loginUser();
+			chat.loginUser();
 			break;
 		case 'r':
-			registerUser();
+			chat.registerUser();
 			break;
 		case 'e':
 			std::cout << "Exit programm...";
