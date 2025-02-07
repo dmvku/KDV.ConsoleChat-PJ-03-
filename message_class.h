@@ -5,7 +5,7 @@ class Message
 {
 public:
 	//Message() = default;
-	Message(const std::string& from, const std::string& to, const std::string& message);
+	Message(const std::string& from, const std::string& to, const std::string& message, bool isPrivateMessage);
 	~Message();
 
 	const std::string getFrom() const;

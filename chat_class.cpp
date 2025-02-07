@@ -16,11 +16,13 @@ void Chat::registerUser()
 	std::string login{};
 	std::string password{};
 	std::string name{};
-	bool valueIsBusy = false;
+	bool valueIsBusy{};
+
 	do
 	{
-		std::cout << "What's your name: ";
-		std::cin >> name;
+		/*std::cout << "What's your name: ";
+		std::cin >> name;*/
+		valueIsBusy = false;
 		std::cout << "Login: ";
 		std::cin >> login;
 		for (auto& element : chatUsers_)
@@ -43,10 +45,10 @@ void Chat::registerUser()
 
 	std::cout << "Password: ";
 	std::cin >> password;
-
-	valueIsBusy = false;
+	
 	do
 	{
+		valueIsBusy = false;
 		std::cout << "Name: ";
 		std::cin >> name;
 
@@ -104,21 +106,23 @@ void Chat::loginUser()
 		{
 			std::cout << warning.what() << "login or password incorrect. Try again...\n";
 		}		
-	} while (correctUser);
+	} while (!correctUser);
 
-	while (loginUser_)
+	/*while (loginUser_)
 	{
 		chatMenu();
-	};
+	};*/
 }
 
 void Chat::chatMenu()
-{
-	std::cout << "Select action:\nn - New message\nv - View messages\nu - User list\ne - Exit chat\n";
+{	
+	loginUser();
 	char action{ '\0' };
 	do
 	{
+		std::cout << "Select action:\nn - New message\nv - View messages\nu - User list\ne - Exit chat\n";
 		action = _getche();
+		std::cout << "\033[1K\033[0G";
 		switch (action)
 		{
 		case 'n':
@@ -132,20 +136,22 @@ void Chat::chatMenu()
 			break;
 		case 'e':
 			std::cout << "Exit chat...";
+			loginUser_ = nullptr;
 			break;
 		default:
-			std::cout << "Wrong command. Please type n, r, p, v, u or e... ";
+			std::cout << "Wrong command. Please type n, v, u or e... ";
 		}
 	} while (action != 'e');
 }
 
 void Chat::newMessage()
 {
-	std::cout << "Select message type: \nr - write to the user\np - write to the user privately\nother key - to all\n";
+	std::cout << "Select message type: \nw - write to the user\np - write to the user privately\nother key - to all\n";
 	char messageType{ '\0' };
 	bool isPrivateMessage{ false };
 	std::string to{ "" };
 	messageType = _getche();
+	std::cout << "\033[1K\033[0G";
 	if (messageType == 'p')
 	{
 		isPrivateMessage = true;
@@ -161,8 +167,11 @@ void Chat::newMessage()
 			return;
 		}
 	}
-
-	chatMessages_.push_back(Message{ loginUser_->getName(), to, isPrivateMessage });
+	
+	std::string messageText{ "" };
+	std::cout << "Input massage text:\n";
+	std::getline(std::cin, messageText);	
+	chatMessages_.push_back(Message{ loginUser_->getName(), to, messageText, isPrivateMessage });
 }
 
 bool Chat::checkUserLogin(std::string& login)
@@ -191,18 +200,24 @@ bool Chat::checkUserName(std::string& name)
 
 void Chat::viewChat()
 {
+	std::cout << "           CHAT:\n";
 	for (auto& element : chatMessages_)
 	{
-		if (element.getName() == name)
+		if (element.getFrom() == loginUser_->getName() || element.getTo() == ""
+			|| element.getTo() == loginUser_->getName() || !element.getIsPrivateMessage())
 		{
-			return true;
-		}
+			std::cout << element.getFrom() << (element.getTo() == "" ? "" : " to " + element.getTo())
+				      << ": " << element.getMessage() << "\n";
+		}		
 	}
-	return false;
 }
 
 void Chat::userList()
 {
-
+	std::cout << "           User List:\n";
+		for (auto& element : chatUsers_)
+		{
+			std::cout << element.getName() << "\n";
+		}
 }
 	

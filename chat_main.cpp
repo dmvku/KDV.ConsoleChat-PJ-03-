@@ -10,16 +10,17 @@ int main()
 	system("CLS");
 	std::cout << "Welcome to the chat!\n";
 	Chat newChat;
-
-	std::cout << "Select action:\nl - Login\nr - Register\ne - Exit programm\n";
+	
 	char action{ '\0' };
 	do
 	{
+		std::cout << "Select action:\nl - Login\nr - Register\ne - Exit programm\n";
 		action = _getche();
+		std::cout << "\033[1K\033[0G";
 		switch (action)
 		{
 		case 'l':
-			newChat.loginUser();
+			newChat.chatMenu();
 			break;
 		case 'r':
 			newChat.registerUser();
