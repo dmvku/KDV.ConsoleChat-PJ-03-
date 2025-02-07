@@ -8,19 +8,24 @@ Message::~Message()
 
 }
 
-const std::string Message::get_From() const
+const std::string Message::getFrom() const
 {
 	return from_;
 }
 
-const std::string Message::get_To() const
+const std::string Message::getTo() const
 {
 	return to_;
 }
 
-const std::string Message::get_Message() const
+const std::string Message::getMessage() const
 {
 	return message_;
+}
+
+const bool Message::getIsPrivateMessage() const
+{
+	return isPrivateMessage_;
 }
 
 /*void set_From(std::string from)
