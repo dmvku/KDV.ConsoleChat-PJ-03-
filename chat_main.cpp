@@ -1,7 +1,6 @@
 #include <iostream>
 #include <conio.h>
 #include <windows.h>
-//#include <memory>
 
 #include "chat_class.h"
 

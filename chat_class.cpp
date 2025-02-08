@@ -1,11 +1,5 @@
 #include "chat_class.h"
 
-using namespace std;
-//Chat::Chat()
-//{	
-//	
-//}
-
 Chat::~Chat()
 {
 
@@ -17,12 +11,11 @@ void Chat::registerUser()
 	std::string password{};
 	std::string name{};
 	bool valueIsBusy{};
+	system("CLS");
 	std::cout << "Register new user:\n";
 
 	do
-	{
-		/*std::cout << "What's your name: ";
-		std::cin >> name;*/
+	{		
 		valueIsBusy = false;
 		std::cout << "Login: ";
 		std::cin >> login;
@@ -72,14 +65,14 @@ void Chat::registerUser()
 	} while (valueIsBusy);
 
 	chatUsers_.push_back(User{ login, password, name });
-	std::cout << "User " << chatUsers_.back().getName() << " is registred...\n";
+	std::cout << "User \033[1;33m" << chatUsers_.back().getName() << "\033[0m is registred...\n\n";
 }
 
 void Chat::loginUser()
-{
+{	
 	if (chatUsers_.empty())
 	{
-		std::cout << "Users not found. Please register...\n";
+		std::cout << "Users not found. Please register...\n\n";
 		return;
 	}
 	std::string login{};
@@ -112,7 +105,7 @@ void Chat::loginUser()
 		}
 		catch (std::exception& warning)
 		{
-			std::cout << warning.what() << "login or password incorrect.\nType \"e\" for exit or any key for try again...\n";
+			std::cout << warning.what() << "login or password incorrect.\nType \"e\" for exit or any key for try again...\n\n";
 			char exitLogin{};
 			exitLogin = _getche();
 			std::cout << "\b";
@@ -121,26 +114,25 @@ void Chat::loginUser()
 				break;
 			}
 		}		
-	} while (!correctUser);
-
-	/*while (loginUser_)
-	{
-		chatMenu();
-	};*/
+	} while (!correctUser);		
 }
 
 void Chat::chatMenu()
 {	
+	system("CLS");
 	loginUser();
+	
 	char action{ '\0' };
 	if (loginUser_ == nullptr)
 	{
 		return;
 	}
+
+	std::cout << "User \033[1;33m" << loginUser_->getName() << "\033[0m is login...\n";
 	
 	do
-	{
-		std::cout << "Select action:\nn - New message\nv - View messages\nu - User list\ne - Exit chat\n";
+	{		
+		std::cout << "\nSelect action:\nn - New message\nv - View messages\nu - User list\ne - Exit chat\n";
 		action = _getche();
 		std::cout << "\b";
 		switch (action)
@@ -166,6 +158,7 @@ void Chat::chatMenu()
 
 void Chat::newMessage()
 {
+	system("CLS");
 	std::cout << "Select message type: \nw - write to the user\np - write to the user privately\nother key - to all\n";
 	char messageType{};
 	bool isPrivateMessage{ false };
@@ -229,6 +222,12 @@ bool Chat::checkUserName(std::string& name)
 
 void Chat::viewChat()
 {
+	system("CLS");
+	if (chatMessages_.empty())
+	{
+		std::cout << "There are no messages in the chat...\n";
+		return;
+	}
 	std::cout << "           CHAT:\n";
 	for (auto& element : chatMessages_)
 	{
@@ -244,6 +243,7 @@ void Chat::viewChat()
 
 void Chat::userList()
 {
+	system("CLS");
 	std::cout << "           User List:\n";
 		for (auto& element : chatUsers_)
 		{
