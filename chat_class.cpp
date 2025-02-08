@@ -17,6 +17,7 @@ void Chat::registerUser()
 	std::string password{};
 	std::string name{};
 	bool valueIsBusy{};
+	std::cout << "Register new user:\n";
 
 	do
 	{
@@ -71,12 +72,19 @@ void Chat::registerUser()
 	} while (valueIsBusy);
 
 	chatUsers_.push_back(User{ login, password, name });
+	std::cout << "User " << chatUsers_.back().getName() << " is registred...\n";
 }
 
 void Chat::loginUser()
 {
+	if (chatUsers_.empty())
+	{
+		std::cout << "Users not found. Please register...\n";
+		return;
+	}
 	std::string login{};
 	std::string password{};
+	std::cout << "User login:\n";
 	
 	bool correctUser = false;
 	do
@@ -104,7 +112,14 @@ void Chat::loginUser()
 		}
 		catch (std::exception& warning)
 		{
-			std::cout << warning.what() << "login or password incorrect. Try again...\n";
+			std::cout << warning.what() << "login or password incorrect.\nType \"e\" for exit or any key for try again...\n";
+			char exitLogin{};
+			exitLogin = _getche();
+			std::cout << "\b";
+			if (exitLogin == 'e')
+			{
+				break;
+			}
 		}		
 	} while (!correctUser);
 
@@ -118,11 +133,16 @@ void Chat::chatMenu()
 {	
 	loginUser();
 	char action{ '\0' };
+	if (loginUser_ == nullptr)
+	{
+		return;
+	}
+	
 	do
 	{
 		std::cout << "Select action:\nn - New message\nv - View messages\nu - User list\ne - Exit chat\n";
 		action = _getche();
-		std::cout << "\033[1K\033[0G";
+		std::cout << "\b";
 		switch (action)
 		{
 		case 'n':
@@ -135,7 +155,7 @@ void Chat::chatMenu()
 			userList();
 			break;
 		case 'e':
-			std::cout << "Exit chat...";
+			std::cout << "Exit chat...\n";
 			loginUser_ = nullptr;
 			break;
 		default:
@@ -147,11 +167,11 @@ void Chat::chatMenu()
 void Chat::newMessage()
 {
 	std::cout << "Select message type: \nw - write to the user\np - write to the user privately\nother key - to all\n";
-	char messageType{ '\0' };
+	char messageType{};
 	bool isPrivateMessage{ false };
 	std::string to{ "" };
 	messageType = _getche();
-	std::cout << "\033[1K\033[0G";
+	std::cout << "\b";
 	if (messageType == 'p')
 	{
 		isPrivateMessage = true;
@@ -161,15 +181,24 @@ void Chat::newMessage()
 	{
 		std::cout << "Input user name: ";
 		std::cin >> to;
-		if (!checkUserName(to))
+		if (!checkUserName(to) )
 		{
 			std::cout << "The user named " << to << " was not found...";
 			return;
 		}
 	}
+
+	// A message to yourself - a note
+	if (to == loginUser_->getName())
+	{
+		std::cout << "You are sending a message to yourself...\n";
+		isPrivateMessage = true;
+		to = "myself";
+	}
 	
 	std::string messageText{ "" };
 	std::cout << "Input massage text:\n";
+	std::cin.ignore();
 	std::getline(std::cin, messageText);	
 	chatMessages_.push_back(Message{ loginUser_->getName(), to, messageText, isPrivateMessage });
 }
@@ -206,8 +235,9 @@ void Chat::viewChat()
 		if (element.getFrom() == loginUser_->getName() || element.getTo() == ""
 			|| element.getTo() == loginUser_->getName() || !element.getIsPrivateMessage())
 		{
-			std::cout << element.getFrom() << (element.getTo() == "" ? "" : " to " + element.getTo())
-				      << ": " << element.getMessage() << "\n";
+			std::cout << "\033[1;4;33m" << (element.getFrom() == loginUser_->getName() ? "me" : element.getFrom())
+				      << "\033[0m" << (element.getTo() == "" ? "" : " to \033[1;4;36m" + element.getTo())
+				      << "\033[0m: " << element.getMessage() << "\n";
 		}		
 	}
 }
@@ -217,7 +247,7 @@ void Chat::userList()
 	std::cout << "           User List:\n";
 		for (auto& element : chatUsers_)
 		{
-			std::cout << element.getName() << "\n";
+			std::cout << "\033[1;33m" << element.getName() << "\033[0m\n";
 		}
 }
 	

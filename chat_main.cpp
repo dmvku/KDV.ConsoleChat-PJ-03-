@@ -1,5 +1,6 @@
 #include <iostream>
 #include <conio.h>
+#include <windows.h>
 //#include <memory>
 
 #include "chat_class.h"
@@ -7,7 +8,13 @@
 
 int main()
 {
+	// Set windows parameter
+	/*HANDLE hWnd = GetStdHandle(STD_OUTPUT_HANDLE);
+	COORD bufferSize = { 80, 24 };
+	SetConsoleScreenBufferSize(hWnd, bufferSize);
+	system("mode con cols=80 lines=25");*/
 	system("CLS");
+
 	std::cout << "Welcome to the chat!\n";
 	Chat newChat;
 	
@@ -16,7 +23,7 @@ int main()
 	{
 		std::cout << "Select action:\nl - Login\nr - Register\ne - Exit programm\n";
 		action = _getche();
-		std::cout << "\033[1K\033[0G";
+		std::cout << "\b";
 		switch (action)
 		{
 		case 'l':
