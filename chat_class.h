@@ -1,15 +1,17 @@
 #pragma once
+#pragma warning(disable : 4996)
 #include "user_class.h"
 #include "message_class.h"
 #include "exception_class.h"
+#include "console.h"
 
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <vector>
 #include <conio.h>
-
-
-using namespace std;
+#include <ctime>
+#include <chrono>
 
 class Chat
 {
@@ -23,17 +25,15 @@ public:
 	void newMessage();
 	void viewChat();
 	void userList();
-	//void addMessage(std::string& to, bool privateMessage);
 	bool checkUserLogin(std::string& to);
 	bool checkUserName(std::string& to);
-
-	std::string checkLogin();
-
-
+	std::string getTheTimeNow();
 
 private:
 	std::vector<User> chatUsers_;
 	std::vector<Message> chatMessages_;	
-	std::shared_ptr<User> loginUser_ { nullptr };
-
+	std::shared_ptr<User> loginUser_ { nullptr };	
+	int lastCoordinateX_{};
+	int lastCoordinateY_{};
+	const int linesLimit_{ 16 }; 
 };
