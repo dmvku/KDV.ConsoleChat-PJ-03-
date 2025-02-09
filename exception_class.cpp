@@ -6,5 +6,5 @@ Warning::~Warning() {}
 
 const char* Warning::what() const noexcept
 {
-    return "WARNING:  ";
+    return "\033[1;33;44mWARNING:  ";
 }
