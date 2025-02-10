@@ -260,9 +260,9 @@ void Chat::newMessage()
 
 	gotoCoordinates(lastCoordinateX_, lastCoordinateY_);
 
-	std::string myName{ loginUser_->getName() };
-	std::string addMeFrom{ chatMessages_.back().getFrom() == myName ? "(me)" : "" };
-	std::string addRecipient{ chatMessages_.back().getTo() == myName ? "\033[0mmyself" : chatMessages_.back().getTo() };
+	std::string addMeFrom{ chatMessages_.back().getFrom() == loginUser_->getName() ? "(me)" : "" };
+	std::string addRecipient{ chatMessages_.back().getTo()
+		== loginUser_->getName() ? "\033[0mmyself" : chatMessages_.back().getTo() };
 	std::string addTo{ chatMessages_.back().getTo() == "" ? "" : "\033[0m to \033[1;4;36m" };
 
 	std::cout << "\033[1;4;33m" << chatMessages_.back().getFrom() << addMeFrom << addTo
@@ -314,20 +314,17 @@ void Chat::viewChat()
 	gotoCoordinates(37, 18);
 	std::cout << "\033[1;33;44mCHAT\033[0m";
 	gotoCoordinates(0, 0);
-	
+	std::string addMeFrom{};
+	std::string addRecipient{};
+	std::string addTo{};
+		
 	for (auto& element : chatMessages_)
-	{	
-		std::string myName{};
-		std::string addMeFrom{};
-		std::string addRecipient{};
-		std::string addTo{};
-
+	{			
 		if (element.getFrom() == loginUser_->getName() || element.getTo() == ""
 			|| element.getTo() == loginUser_->getName() || !element.getIsPrivateMessage())
-		{
-			myName = loginUser_->getName();
-			addMeFrom = element.getFrom() == myName ? "(me)" : "";
-			addRecipient = element.getTo() == myName ? "\033[0mmyself" : element.getTo();
+		{			
+			addMeFrom = element.getFrom() == loginUser_->getName() ? "(me)" : "";
+			addRecipient = element.getTo() == loginUser_->getName() ? "\033[0mmyself" : element.getTo();
 			addTo = element.getTo() == "" ? "" : "\033[0m to \033[1;4;36m";
 
 			std::cout << "\033[1;4;33m" << element.getFrom() << addMeFrom << addTo << addRecipient
@@ -366,10 +363,12 @@ void Chat::userList()
 	gotoCoordinates(35, 18);
 	std::cout << "\033[1;33;44mUser List\033[0m";
 	gotoCoordinates(0, 0);
+	std::string addMe{};
 	
 		for (auto& element : chatUsers_)
 		{
-			std::cout << "\033[1;33m" << element.getName() << "\033[0m\n";
+			addMe = element.getName() == loginUser_->getName() ? "(me)" : "";
+			std::cout << "\033[1;33m" << element.getName() << "\033[0m" << addMe << " \n";
 			lastCoordinateY_ = getYcoord();
 			std::cout << "\033[2K";
 			if (lastCoordinateY_ >= linesLimit_)
