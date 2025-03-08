@@ -175,9 +175,13 @@ void Chat::chatMenu()
 		return;
 	}
 
+	TrieNode* root = getNewNode();
+	std::string filename{ "dict.txt" };
+	read_dict(filename, root);
+
 	system("CLS");
 	outInformationLines();
-	outSelectAction();
+	outSelectAction();	
 	gotoCoordinates(0, 0);
 	std::cout << "User \033[1;33m" << loginUser_->getName() << "\033[0m is login...\n";
 	lastCoordinateY_ = getYcoord();
@@ -195,7 +199,7 @@ void Chat::chatMenu()
 		switch (action)
 		{
 		case 'n':
-			newMessage();
+			newMessage(root);
 			break;
 		case 'v':
 			viewChat();
@@ -204,6 +208,7 @@ void Chat::chatMenu()
 			userList();
 			break;
 		case 'e':
+			write_dict(filename, root);
 			gotoCoordinates(0, 0);			
 			system("CLS");
 			loginUser_ = nullptr;
@@ -218,7 +223,7 @@ void Chat::chatMenu()
 	outSelectAction();
 }
 
-void Chat::newMessage()
+void Chat::newMessage(TrieNode* root)
 {
 	clearingTheInputWindow();
 	outInformationLines();
@@ -263,13 +268,14 @@ void Chat::newMessage()
 		isPrivateMessage = true;
 	}
 	
-	std::string messageText{ "" };
-	std::cout << "Input message text: ";
+	//std::string messageText{ "" };
+	//std::cout << "Input message text: ";
 
 	// Create function prefix input
-	std::cin.ignore(1, '\n');
-	std::getline(std::cin, messageText);	
-	//
+	//std::cin.ignore(1, '\n');
+	//std::getline(std::cin, messageText);	
+	
+	std::string messageText{ creatingMessage(root) };
 
 	chatMessages_.push_back(Message{ loginUser_->getName(), to, messageText,  getTheTimeNow(), isPrivateMessage });
 

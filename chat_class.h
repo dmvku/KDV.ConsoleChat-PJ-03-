@@ -4,12 +4,13 @@
 #include "message_class.h"
 #include "exception_class.h"
 #include "console.h"
+#include "trie_struct.h"
 
-#include <iostream>
-#include <iomanip>
-#include <string>
-#include <vector>
-#include <conio.h>
+//#include <iostream>
+//#include <iomanip>
+//#include <string>
+//#include <vector>
+//#include <conio.h>
 #include <ctime>
 #include <chrono>
 
@@ -22,7 +23,7 @@ public:
 	void registerUser();
 	void loginUser();
 	void chatMenu();
-	void newMessage();
+	void newMessage(TrieNode* root);
 	void viewChat();
 	void userList();
 	bool checkUserLogin(std::string& to);
