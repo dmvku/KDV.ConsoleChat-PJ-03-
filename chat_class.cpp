@@ -79,7 +79,23 @@ void Chat::registerUser()
 
 	chatUsers_.push_back(User{ login, password, name });
 	system("CLS");
-	std::cout << "User \033[1;33m" << chatUsers_.back().getName() << "\033[0m is registred...\n\n";
+	try
+	{
+		if (chatUsers_.empty())
+		{
+			throw Warning();
+		}
+	}
+	catch (std::exception& warning)
+	{
+		gotoCoordinates(24, 18);
+		std::cout << warning.what() << "registration failed...\033[0m";
+		gotoCoordinates(0, 21);
+		std::cout << "\033[2K";
+		valueIsBusy = true;
+		return;
+	}
+	std::cout << "User \033[1;33m" << chatUsers_.back().getName() << "\033[0m is registred...\n\n";	
 	outInformationLines();
 }
 
@@ -112,7 +128,7 @@ void Chat::loginUser()
 		{
 			if (element.getLogin() == login && element.getPassword() == password)
 			{
-				correctUser = true;
+				correctUser = true;				
 				loginUser_ = std::make_shared<User>(element);
 				break;
 			}
@@ -240,14 +256,21 @@ void Chat::newMessage()
 	// A message to yourself - a note
 	if (to == loginUser_->getName())
 	{
-		std::cout << "You are sending a message to yourself...\n";
+		gotoCoordinates(20, 18);
+		std::cout << "\033[1;33;44mYou are sending a message to yourself...\033[0m";
+		clearingTheInputWindow();
+		gotoCoordinates(0, 19);
 		isPrivateMessage = true;
 	}
 	
 	std::string messageText{ "" };
-	std::cout << "Input message text:\n";
-	std::cin.ignore();
+	std::cout << "Input message text: ";
+
+	// Create function prefix input
+	std::cin.ignore(1, '\n');
 	std::getline(std::cin, messageText);	
+	//
+
 	chatMessages_.push_back(Message{ loginUser_->getName(), to, messageText,  getTheTimeNow(), isPrivateMessage });
 
 	clearingTheInputWindow();
@@ -260,7 +283,7 @@ void Chat::newMessage()
 
 	gotoCoordinates(lastCoordinateX_, lastCoordinateY_);
 
-	std::string addMeFrom{ chatMessages_.back().getFrom() == loginUser_->getName() ? "(me)" : "" };
+	std::string addMeFrom{ chatMessages_.back().getFrom() == loginUser_->getName() ? "\033[0m(me)" : "" };
 	std::string addRecipient{ chatMessages_.back().getTo()
 		== loginUser_->getName() ? "\033[0mmyself" : chatMessages_.back().getTo() };
 	std::string addTo{ chatMessages_.back().getTo() == "" ? "" : "\033[0m to \033[1;4;36m" };
@@ -323,7 +346,7 @@ void Chat::viewChat()
 		if (element.getFrom() == loginUser_->getName() || element.getTo() == ""
 			|| element.getTo() == loginUser_->getName() || !element.getIsPrivateMessage())
 		{			
-			addMeFrom = element.getFrom() == loginUser_->getName() ? "(me)" : "";
+			addMeFrom = element.getFrom() == loginUser_->getName() ? "\033[0m(me)" : "";
 			addRecipient = element.getTo() == loginUser_->getName() ? "\033[0mmyself" : element.getTo();
 			addTo = element.getTo() == "" ? "" : "\033[0m to \033[1;4;36m";
 
