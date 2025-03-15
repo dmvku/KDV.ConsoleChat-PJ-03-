@@ -247,12 +247,12 @@ std::string creatingMessage(TrieNode* root)
     std::vector<std::string> arrayOfMessageWords{};    
     std::vector<std::string> predictiveList{};
     char pressKey{ '\0' };
-    gotoCoordinates(0, 19);
+    //gotoCoordinates(0, 19);
 
     clearingTheInputWindow();
-    outInformationLines();
+    /*outInformationLines();
     gotoCoordinates(30, 18);
-    std::cout << "\033[1;33;44mInput message text:\033[37; 0m";
+    std::cout << "\033[1;33;44mInput message text:\033[37; 0m";*/
     gotoCoordinates(4, 24);
     std::cout << "\033[1;33;44m\033[36m\x11\033[33m previous word   \033[36m\x10"
         << "\033[33m next word   \033[36m\x1E\033[33m page up   \033[36m\x1F"
@@ -267,7 +267,7 @@ std::string creatingMessage(TrieNode* root)
             pressKey = _getche();
         }
         
-        if (pressKey == 8)
+        if (pressKey == 8)    // key "Backspace"
         {
             if (!prefix.empty())
             {
@@ -299,12 +299,7 @@ std::string creatingMessage(TrieNode* root)
                         isCapitalLetter = true;
                         prefix.front() += 32;
                     }
-                }   
-
-                /*if (newMessage.size())
-                {
-                    newMessage.pop_back();
-                } */  
+                }                   
 
                 std::cout << "\033[0K";
                 pressKey = '\0';
@@ -313,7 +308,7 @@ std::string creatingMessage(TrieNode* root)
                 continue;
             }
         }
-        else if (pressKey == 13)
+        else if (pressKey == 13)   // key "Enter"
         {
             
 
@@ -453,17 +448,17 @@ std::string creatingMessage(TrieNode* root)
             gotoCoordinates(lastCoordinateX, lastCoordinateY); 
         }
         
-        if (pressKey == -32)
+        if (pressKey == -32)     // key "Esc"
         {           
             int element{ 0 };
-            size_t wordsOfTheScreen{ 85 };
+            const size_t wordsOfTheScreen{ 85 };
             int predictPage{ 0 };
             int predictLine{ 0 };
             size_t pagesInTheDictionary{ predictiveList.size() % wordsOfTheScreen
                 ? predictiveList.size() / wordsOfTheScreen + 1
                 : predictiveList.size() / wordsOfTheScreen };
-            int wordCoordinateX{ 0 };
-            int wordCoordinateY{ 0 };
+            //int wordCoordinateX{ 0 };
+            //int wordCoordinateY{ 0 };
             int wordPositionX{};
             int wordPositionY{};
 
@@ -478,7 +473,7 @@ std::string creatingMessage(TrieNode* root)
             {
                 do
                 {
-                    if (pressKey != 13)
+                    if (pressKey != 13)   // key "Enter"
                     {
                         pressKey = _getche();
                     }
@@ -559,7 +554,7 @@ std::string creatingMessage(TrieNode* root)
                             std::cout << "\b";
                         }
                     }          
-                } while (pressKey == -32);
+                } while (pressKey == -32);     // key "Esc"
 
                 if (pressKey == '\0')
                 {

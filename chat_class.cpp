@@ -184,7 +184,7 @@ void Chat::chatMenu()
 	outSelectAction();	
 	gotoCoordinates(0, 0);
 	std::cout << "User \033[1;33m" << loginUser_->getName() << "\033[0m is login...\n";
-	lastCoordinateY_ = getYcoord();
+	//lastCoordinateY_ = getYcoord();
 
 	do
 	{
@@ -259,13 +259,19 @@ void Chat::newMessage(TrieNode* root)
 	}
 
 	// A message to yourself - a note
+	outInformationLines();
 	if (to == loginUser_->getName())
 	{
-		gotoCoordinates(20, 18);
+		gotoCoordinates(19, 18);
 		std::cout << "\033[1;33;44mYou are sending a message to yourself...\033[0m";
-		clearingTheInputWindow();
-		gotoCoordinates(0, 19);
+		//clearingTheInputWindow();
+		//gotoCoordinates(0, 19);
 		isPrivateMessage = true;
+	}
+	else
+	{
+		gotoCoordinates(30, 18);
+		std::cout << "\033[1;33;44mInput message text:\033[0m";
 	}
 	
 	//std::string messageText{ "" };

@@ -20,9 +20,11 @@ public:
 	Chat() = default;
 	~Chat();
 
-	void registerUser();
-	void loginUser();
 	void chatMenu();
+	void registerUser();
+
+private:
+	void loginUser();
 	void newMessage(TrieNode* root);
 	void viewChat();
 	void userList();
@@ -30,7 +32,6 @@ public:
 	bool checkUserName(std::string& to);
 	std::string getTheTimeNow();
 
-private:
 	std::vector<User> chatUsers_;
 	std::vector<Message> chatMessages_;	
 	std::shared_ptr<User> loginUser_ { nullptr };	
