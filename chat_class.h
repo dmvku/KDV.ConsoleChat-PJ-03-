@@ -13,6 +13,7 @@
 //#include <conio.h>
 #include <ctime>
 #include <chrono>
+//#include <list>
 
 class Chat
 {
@@ -22,19 +23,21 @@ public:
 
 	void chatMenu();
 	void registerUser();
+	void deleteUser();
 
 private:
 	void loginUser();
-	void newMessage(TrieNode* root);
+	void newMessage(TrieNode* root);	
 	void viewChat();
 	void userList();
-	bool checkUserLogin(std::string& to);
+	list<User>::iterator checkUser(std::string title);
+	list<User>::iterator findUser(const std::string& _login);
 	bool checkUserName(std::string& to);
 	std::string getTheTimeNow();
 
-	std::vector<User> chatUsers_;
+	std::list<User> chatUsers_;
 	std::vector<Message> chatMessages_;	
-	std::shared_ptr<User> loginUser_ { nullptr };	
+	list<User>::iterator loginUser_{ chatUsers_.end() };
 	int lastCoordinateX_{};
 	int lastCoordinateY_{};
 	const int linesLimit_{ 16 }; 

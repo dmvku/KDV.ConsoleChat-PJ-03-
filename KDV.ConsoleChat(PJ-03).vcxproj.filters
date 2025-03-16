@@ -33,7 +33,10 @@
     <ClCompile Include="console.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="Trie.cpp">
+    <ClCompile Include="trie_struct.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="sha1.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -53,8 +56,14 @@
     <ClInclude Include="console.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
-    <ClInclude Include="Trie.h">
+    <ClInclude Include="trie_struct.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="sha1.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="dict.txt" />
   </ItemGroup>
 </Project>

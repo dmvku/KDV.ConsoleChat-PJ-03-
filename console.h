@@ -13,5 +13,6 @@ void gotoCoordinates(int x, int y);
 int getXcoord();
 int getYcoord();
 void clearingTheInputWindow();
+void clearingTheOutputWindow();
 void outInformationLines();
 void outSelectAction();

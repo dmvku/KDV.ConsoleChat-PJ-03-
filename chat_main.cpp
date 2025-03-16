@@ -13,22 +13,23 @@ int main()
 	system("mode con cols=80 lines=25");
 	system("CLS");
 
-	gotoCoordinates(30, 9);
-	std::cout << "Welcome to the chat!\n";
 	outInformationLines();
-	outSelectAction();
+	gotoCoordinates(29, 18);
+	std::cout << "\033[1;33;44mWelcome to the chat!\033[0m";
 
 	Chat newChat;
 	
 	char action{};
 	do
 	{			
-		gotoCoordinates(27, 24);
-		std::cout << "\033[1;36;44ml\033[33mogin    \033[36mr\033[33megister    \033[36me\033[33mxit\033[0m";
+		gotoCoordinates(18, 24);
+		std::cout << "\033[1;36;44ml\033[33mogin    \033[36mr\033[33megister user    "
+			<< "\033[36md\033[33melete user   \033[36me\033[33mxit\033[0m";
 		gotoCoordinates(0, 19);
 		
 		action = _getche();
 		std::cout << "\033[2K";
+
 		switch (action)
 		{
 		case 'l':
@@ -36,7 +37,11 @@ int main()
 			break;
 		case 'r':
 			newChat.registerUser();
-			outSelectAction();
+			//outSelectAction();
+			break;
+		case 'd':
+			newChat.deleteUser();
+			//outSelectAction();
 			break;
 		case 'e':
 			system("CLS");

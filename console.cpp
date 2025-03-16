@@ -31,6 +31,12 @@ void clearingTheInputWindow()
 	std::cout << "\033[A\033[2K\033[A\033[2K\033[A\033[2K\033[A\033[2K";
 }
 
+void clearingTheOutputWindow()
+{
+	gotoCoordinates(79, 17);
+	std::cout << "\033[1J";
+}
+
 void outInformationLines()       // Displays the fields of the input window
 {
 	gotoCoordinates(0, 18);

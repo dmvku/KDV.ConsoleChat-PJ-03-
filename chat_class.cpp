@@ -9,76 +9,71 @@ void Chat::registerUser()
 {
 	std::string login{};
 	std::string password{};
-	std::string name{};
-	bool valueIsBusy{};
-	system("CLS");
+	std::string name{};	
+
+	//system("CLS");
 	outInformationLines();
 	gotoCoordinates(31, 18);
 	std::cout << "\033[1;33;44mRegister new user:\033[0m";
 	gotoCoordinates(0, 19);
 	
-	do
-	{				
-		valueIsBusy = false;
-		std::cout << "Login: ";
-		std::cin >> login;
-		for (auto& element : chatUsers_)
+	std::cout << "Login: ";
+	std::cin >> login;
+
+	list<User>::iterator it = findUser(login);
+
+	try
+	{
+		if (it != chatUsers_.end())
 		{
-			try
-			{
-				if (element.getLogin() == login)
-				{
-					throw Warning();
-				}
-			}
-			catch (std::exception& warning)
-			{
-				gotoCoordinates(13, 18);
-				std::cout << warning.what() << "login is busy. Choose a different login...\033[0m";
-				gotoCoordinates(0, 19);
-				std::cout << "\033[2K";
-				valueIsBusy = true;				
-				break;
-			}
+			throw Warning();
 		}
-	} while (valueIsBusy);
+	}
+	catch (std::exception& warning)
+	{
+		gotoCoordinates(13, 18);
+		std::cout << warning.what() << "login is busy. Choose a different login...\033[0m";
+		gotoCoordinates(0, 19);
+		std::cout << "\033[2K";
+		return;
+	}
 	
 	outInformationLines();
 	gotoCoordinates(31, 18);
 	std::cout << "\033[1;33;44mRegister new user:\033[0m";
 	gotoCoordinates(0, 20);
+
 	std::cout << "Password: ";
-	std::cin >> password;	
-	
+	std::cin >> password;
+	uint* digest = sha1(password);
+	bool valueIsBusy{};
+
 	do
 	{
 		valueIsBusy = false;
 		std::cout << "Name: ";
 		std::cin >> name;
 
-		for (auto& element : chatUsers_)
+		try
 		{
-			try
+			if (checkUserName(name))
 			{
-				if (element.getName() == name)
-				{
-					throw Warning();
-				}
-			}
-			catch (std::exception& warning)
-			{
-				gotoCoordinates(14, 18);
-				std::cout << warning.what() << "name is busy. Choose a different name...\033[0m";
-				gotoCoordinates(0, 21);
-				std::cout << "\033[2K";
-				valueIsBusy = true;
-				break;
+				throw Warning();
 			}
 		}
+		catch (std::exception& warning)
+		{
+			gotoCoordinates(14, 18);
+			std::cout << warning.what() << "name is busy. Choose a different name...\033[0m";
+			gotoCoordinates(0, 21);
+			std::cout << "\033[2K";
+			valueIsBusy = true;			
+		}		
 	} while (valueIsBusy);
-
-	chatUsers_.push_back(User{ login, password, name });
-	system("CLS");
+	
+	chatUsers_.emplace_back(login, digest, name);
+	
+	//system("CLS");
 	try
 	{
 		if (chatUsers_.empty())
@@ -95,82 +90,48 @@ void Chat::registerUser()
 		valueIsBusy = true;
 		return;
 	}
-	std::cout << "User \033[1;33m" << chatUsers_.back().getName() << "\033[0m is registred...\n\n";	
+	gotoCoordinates(lastCoordinateX_, lastCoordinateY_);
+	std::cout << "User \033[1;33m" << chatUsers_.back().getName() << "\033[0m is registred...\n";	
+	lastCoordinateY_ = getYcoord();
+	clearingTheInputWindow();
 	outInformationLines();
+	outSelectAction();
+}
+
+void Chat::deleteUser()
+{
+	list<User>::iterator it = checkUser("Delete User:");
+	if (it != chatUsers_.end())
+	{
+		gotoCoordinates(lastCoordinateX_, lastCoordinateY_);
+		std::cout << "User \033[1;33m" << it->getName() << "\033[0m is deleted...\n";
+		lastCoordinateY_ = getYcoord();
+		chatUsers_.erase(it);
+		outInformationLines();
+		outSelectAction();
+	}	
+	clearingTheInputWindow();
 }
 
 void Chat::loginUser()
 {	
-	if (chatUsers_.empty())
+	list<User>::iterator it = checkUser("User login:");
+	if (it != chatUsers_.end())
 	{
+		loginUser_ = it;
 		outInformationLines();
-		gotoCoordinates(22, 18);		
-		std::cout << "\033[1;33;44mUsers not found. Please register...\033[0m";
-		return;
-	}
-	std::string login{};
-	std::string password{};
-	
-	bool correctUser = false;
-	do
-	{
-		system("CLS");
-		outInformationLines();
-		gotoCoordinates(35, 18);
-		std::cout << "\033[1;36;44mUser login:\033[0m";
-		gotoCoordinates(0, 19);
-		std::cout << "Login: ";
-		std::cin >> login;
-		std::cout << "Password: ";
-		std::cin >> password;
-
-		for (auto& element : chatUsers_)
-		{
-			if (element.getLogin() == login && element.getPassword() == password)
-			{
-				correctUser = true;				
-				loginUser_ = std::make_shared<User>(element);
-				break;
-			}
-		}
-		try
-		{
-			if (!correctUser)
-			{
-				throw Warning();
-			}
-		}
-		catch (std::exception& warning)
-		{
-			clearingTheInputWindow(); 
-			outInformationLines();
-			gotoCoordinates(19, 18);
-			std::cout << warning.what() << "login or password incorrect...";
-			gotoCoordinates(24, 24);
-			std::cout << "\033[1;44m\033[36me\033[33mxit    \033[36mother key\033[33m - try again\033[0m";				
-			gotoCoordinates(0, 19);
-							
-			char exitLogin{};
-			exitLogin = _getche();
-			
-			if (exitLogin == 'e')
-			{
-				system("CLS");
-				outInformationLines();
-				break;
-			}
-		}		
-	} while (!correctUser);	
-	outSelectAction();
+		outSelectAction();
+	}		
+	clearingTheInputWindow();
 }
 
 void Chat::chatMenu()
 {
-	system("CLS");
+	//system("CLS");
 	loginUser();
 
 	char action{};
-	if (loginUser_ == nullptr)
+	if (loginUser_ == chatUsers_.end())
 	{
 		return;
 	}
@@ -184,7 +145,7 @@ void Chat::chatMenu()
 	outSelectAction();	
 	gotoCoordinates(0, 0);
 	std::cout << "User \033[1;33m" << loginUser_->getName() << "\033[0m is login...\n";
-	//lastCoordinateY_ = getYcoord();
+	lastCoordinateY_ = getYcoord();
 
 	do
 	{
@@ -211,7 +172,7 @@ void Chat::chatMenu()
 			write_dict(filename, root);
 			gotoCoordinates(0, 0);			
 			system("CLS");
-			loginUser_ = nullptr;
+			loginUser_ = chatUsers_.end();
 			break;
 		default:
 			outInformationLines();
@@ -219,6 +180,7 @@ void Chat::chatMenu()
 			std::cout << "\033[1;33;44mWrong command. Please type n, v, u or e...\033[0m";
 		}		
 	} while (action != 'e');
+	lastCoordinateY_ = 0;
 	outInformationLines();
 	outSelectAction();
 }
@@ -249,7 +211,7 @@ void Chat::newMessage(TrieNode* root)
 	{
 		std::cout << "Input user name: ";
 		std::cin >> to;
-		if (!checkUserName(to) )
+		if (findUser(to) == chatUsers_.end())
 		{
 			outInformationLines();
 			gotoCoordinates(20, 18);
@@ -309,16 +271,78 @@ void Chat::newMessage(TrieNode* root)
 	outSelectAction();
 }
 
-bool Chat::checkUserLogin(std::string& login)
-{
-	for (auto& element : chatUsers_)
+list<User>::iterator Chat::checkUser(std::string title)
+{	
+	if (chatUsers_.empty())
 	{
-		if (element.getLogin() == login)
-		{
-			return true;
-		}
+		outInformationLines();
+		gotoCoordinates(22, 18);
+		std::cout << "\033[1;33;44mUsers not found. Please register...\033[0m";
+		return chatUsers_.end();
 	}
-	return false;
+	std::string login{};
+	std::string password{};
+
+	outInformationLines();
+	gotoCoordinates(33, 18);
+	std::cout << "\033[1;33;44m" << title << "\033[0m";
+	gotoCoordinates(0, 19);
+
+	clearingTheInputWindow();
+	gotoCoordinates(0, 19);
+	std::cout << "Login: ";
+	std::cin >> login;
+	std::cout << "Password: ";
+	std::cin >> password;
+
+	list<User>::iterator it = findUser(login);
+
+	try
+	{
+		if (it != chatUsers_.end())
+		{
+			uint* digest = sha1(password);
+			if (!memcmp(it->getPasswordHash(), digest, SHA1HASHLENGTHBYTES))
+			{
+				return it;
+			}
+			else
+			{
+				throw Warning();
+			}
+		}
+		else
+		{
+			throw Warning();
+		}		
+	}
+	catch (std::exception& warning)
+	{
+		clearingTheInputWindow();
+		outInformationLines();
+		gotoCoordinates(19, 18);
+		std::cout << warning.what() << "login or password incorrect...\033[0m";
+		//clearingTheInputWindow();
+		/*system("CLS");
+		outInformationLines();*/
+		return chatUsers_.end();
+	}
+}
+
+list<User>::iterator Chat::findUser(const std::string& _login)
+{
+	list<User>::iterator it = chatUsers_.begin();
+
+	for (User& user : chatUsers_)
+	{
+		if (user.getLogin() == _login)
+		{
+			return it;
+		}
+		++it;
+	}
+
+	return chatUsers_.end();
 }
 
 bool Chat::checkUserName(std::string& name)
@@ -350,19 +374,36 @@ void Chat::viewChat()
 	std::cout << "\033[1;33;44mCHAT\033[0m";
 	gotoCoordinates(0, 0);
 	std::string addMeFrom{};
+	std::string addFrom{};
 	std::string addRecipient{};
-	std::string addTo{};
+	//std::string addTo{};
 		
 	for (auto& element : chatMessages_)
 	{			
 		if (element.getFrom() == loginUser_->getName() || element.getTo() == ""
 			|| element.getTo() == loginUser_->getName() || !element.getIsPrivateMessage())
 		{			
+			addFrom = findUser(element.getFrom()) == chatUsers_.end() ? "\033[0mdeleted" : element.getFrom();
 			addMeFrom = element.getFrom() == loginUser_->getName() ? "\033[0m(me)" : "";
-			addRecipient = element.getTo() == loginUser_->getName() ? "\033[0mmyself" : element.getTo();
-			addTo = element.getTo() == "" ? "" : "\033[0m to \033[1;4;36m";
+			if (element.getTo() == "")
+			{
+				addRecipient = "";
+			}			
+			else if (element.getTo() == loginUser_->getName())
+			{
+				addRecipient = "\033[0m to myself";
+			}
+			else if (findUser(element.getTo()) == chatUsers_.end() && element.getTo() != "")
+			{
+				addRecipient = "\033[0m to deleted";
+			}
+			else
+			{
+				addRecipient = "\033[0m to \033[1;4;36m" + element.getTo();
+			}			
+			/*addTo = element.getTo() == "" ? "" : "\033[0m to \033[1;4;36m";*/
 
-			std::cout << "\033[1;4;33m" << element.getFrom() << addMeFrom << addTo << addRecipient
+			std::cout << "\033[1;4;33m" << addFrom << addMeFrom << addRecipient
 				      << "\033[0m \033[1;4;32m" << element.getCreationTime() << "\033[0m: " 
 				      << element.getMessage() << "\n";
 			lastCoordinateY_ = getYcoord();

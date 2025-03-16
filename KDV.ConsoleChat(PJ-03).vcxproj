@@ -132,6 +132,7 @@
     <ClCompile Include="exception_class.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="message_class.cpp" />
+    <ClCompile Include="sha1.cpp" />
     <ClCompile Include="trie_struct.cpp" />
     <ClCompile Include="user_class.cpp" />
   </ItemGroup>
@@ -140,6 +141,7 @@
     <ClInclude Include="exception_class.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="message_class.h" />
+    <ClInclude Include="sha1.h" />
     <ClInclude Include="trie_struct.h" />
     <ClInclude Include="user_class.h" />
   </ItemGroup>
