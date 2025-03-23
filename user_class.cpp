@@ -1,10 +1,5 @@
 #include "user_class.h"
 
-//User::User()
-//{
-//
-//}
-
 User::User(const std::string& login, const std::string& password, const std::string& name)
 	: login_{ login }, password_{ password }, name_{ name } {}
 
@@ -26,6 +21,11 @@ const std::string& User::getPassword() const
 const std::string& User::getName() const
 {
 	return name_;
+}
+
+void User::setLogin(std::string& login)
+{
+	login_ = login;
 }
 
 void User::setPassword(std::string& password)

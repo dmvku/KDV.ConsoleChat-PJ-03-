@@ -28,9 +28,6 @@ const bool Message::getIsPrivateMessage() const
 	return isPrivateMessage_;
 }
 
-/*void set_From(std::string from)
-void set_To(std::string to)*/
-
 void Message::set_Message(std::string& message)
 {
 	message_ = message;

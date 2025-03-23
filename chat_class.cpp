@@ -5,13 +5,41 @@ Chat::~Chat()
 
 }
 
+void Chat::mainMenu()
+{
+	readUsersFile();
+
+	char action{ '\0' };
+	do
+	{
+		std::cout << "Select action:\nl - Login\nr - Register\ne - Exit programm\n";
+		std::cin >> action;
+
+		switch (action)
+		{
+		case 'l':
+			chatMenu();
+			break;
+		case 'r':
+			registerUser();
+			break;
+		case 'e':
+			std::cout << "Exit programm...";
+			break;
+		default:
+			std::cout << "Wrong command. Please type l, r or e...";
+		}
+	} while (action != 'e');
+
+}
+
 void Chat::registerUser()
 {
 	std::string login{};
 	std::string password{};
 	std::string name{};
 	bool valueIsBusy{};
-	system("CLS");
+	system("clear");
 	std::cout << "Register new user:\n";
 
 	do
@@ -65,6 +93,22 @@ void Chat::registerUser()
 	} while (valueIsBusy);
 
 	chatUsers_.push_back(User{ login, password, name });
+	std::ofstream fs(usersFile_, ios::app);
+	if (!fs)
+	{
+		fs = ofstream(usersFile_, ios::out | ios::trunc);
+	}
+
+	if (fs)
+	{
+		fs << login << std::endl << password << std::endl << name << std::endl;
+	}
+	else
+	{
+		cout << "Could not open file users.data!" << '\n';
+		return;
+	}
+
 	std::cout << "User \033[1;33m" << chatUsers_.back().getName() << "\033[0m is registred...\n\n";
 }
 
@@ -107,7 +151,7 @@ void Chat::loginUser()
 		{
 			std::cout << warning.what() << "login or password incorrect.\nType \"e\" for exit or any key for try again...\n\n";
 			char exitLogin{};
-			exitLogin = _getche();
+			std::cin >> exitLogin;
 			std::cout << "\b";
 			if (exitLogin == 'e')
 			{
@@ -119,7 +163,7 @@ void Chat::loginUser()
 
 void Chat::chatMenu()
 {	
-	system("CLS");
+	system("clear");
 	loginUser();
 	
 	char action{ '\0' };
@@ -133,7 +177,7 @@ void Chat::chatMenu()
 	do
 	{		
 		std::cout << "\nSelect action:\nn - New message\nv - View messages\nu - User list\ne - Exit chat\n";
-		action = _getche();
+		std::cin >> action;
 		std::cout << "\b";
 		switch (action)
 		{
@@ -158,12 +202,12 @@ void Chat::chatMenu()
 
 void Chat::newMessage()
 {
-	system("CLS");
+	system("clear");
 	std::cout << "Select message type: \nw - write to the user\np - write to the user privately\nother key - to all\n";
 	char messageType{};
 	bool isPrivateMessage{ false };
 	std::string to{ "" };
-	messageType = _getche();
+	std::cin >> messageType;
 	std::cout << "\b";
 	if (messageType == 'p')
 	{
@@ -222,7 +266,52 @@ bool Chat::checkUserName(std::string& name)
 
 void Chat::viewChat()
 {
-	system("CLS");
+	system("clear");
+	std::cout << "           CHAT:\n";
+	std::ifstream fs(messagesFile_, ios::in);
+	std::string from{};
+	std::string to{};
+	std::string message{};
+	bool isPrivate{};
+	int maxMessagesOnTheScreen{ 10 };
+	int countMessagesOnTheScreen{};
+
+	if (!fs)
+	{
+		cout << "There are no messages in the chat...\n!";		\
+	}
+	else		
+	{
+		while (!fs.eof())
+		{
+			fs >> from >> to >> message >> isPrivate;
+			if (from == loginUser_->getName() || to == "" || to == loginUser_->getName() || !isPrivate)
+			{
+				std::cout << "\033[1;4;33m" << (from == loginUser_->getName() ? "me" : from)
+					<< "\033[0m" << (to == "" ? "" : " to \033[1;4;36m" + to)
+					<< "\033[0m: " << message << "\n";
+			}
+
+			countMessagesOnTheScreen++;
+
+			if (countMessagesOnTheScreen == maxMessagesOnTheScreen)
+			{
+				char action{ '\0' };
+				std::cout << "Continue (y - yes, other key - no)? ";
+				std::cin >> action;
+				if (action != 'y' || action != 'Y')
+				{
+					return;
+				}
+
+				system("clear");
+				std::cout << "           CHAT:\n";
+				countMessagesOnTheScreen = 0;
+			}
+		}
+	}		
+	
+	/*system("clear");
 	if (chatMessages_.empty())
 	{
 		std::cout << "There are no messages in the chat...\n";
@@ -238,16 +327,42 @@ void Chat::viewChat()
 				      << "\033[0m" << (element.getTo() == "" ? "" : " to \033[1;4;36m" + element.getTo())
 				      << "\033[0m: " << element.getMessage() << "\n";
 		}		
-	}
+	}*/
 }
 
 void Chat::userList()
 {
-	system("CLS");
+	system("clear");
 	std::cout << "           User List:\n";
 		for (auto& element : chatUsers_)
 		{
 			std::cout << "\033[1;33m" << element.getName() << "\033[0m\n";
 		}
 }
+
+void Chat::readUsersFile()
+{	
+	std::ifstream fs(usersFile_, ios::in);
+	std::string login{};
+	std::string password{};
+	std::string name{};	
 	
+	if (!fs)
+	{
+		cout << "Users not found. Please register...\n!";
+		return;
+	}
+	else
+	{
+		while(!fs.eof())
+		{
+			fs >> login >> password >> name;
+			chatUsers_.push_back(User{ login, password, name });
+		}		
+	}	
+}
+
+void Chat::readMessagesFile()
+{
+	
+}
