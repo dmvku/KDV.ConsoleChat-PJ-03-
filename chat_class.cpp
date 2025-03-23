@@ -5,13 +5,49 @@ Chat::~Chat()
 
 }
 
+void Chat::mainMenu()
+{
+	char action{};
+	do
+	{
+		gotoCoordinates(18, 24);
+		std::cout << "\033[1;36;44ml\033[33mogin    \033[36mr\033[33megister user    "
+			<< "\033[36md\033[33melete user   \033[36me\033[33mxit\033[0m";
+		gotoCoordinates(0, 19);
+
+		action = _getche();
+		std::cout << "\033[2K";
+
+		switch (action)
+		{
+		case 'l':
+			chatMenu();
+			break;
+		case 'r':
+			registerUser();
+			break;
+		case 'd':
+			deleteUser();
+			break;
+		case 'e':
+			system("CLS");
+			std::cout << "Exit programm...";
+			break;
+		default:
+			system("CLS");
+			outInformationLines();
+			gotoCoordinates(20, 18);
+			std::cout << "\033[1;33;44mWrong command. Please type l, r or e...\033[0m";
+		}
+	} while (action != 'e');
+}
+
 void Chat::registerUser()
 {
 	std::string login{};
 	std::string password{};
 	std::string name{};	
 
-	//system("CLS");
 	outInformationLines();
 	gotoCoordinates(31, 18);
 	std::cout << "\033[1;33;44mRegister new user:\033[0m";
@@ -20,7 +56,7 @@ void Chat::registerUser()
 	std::cout << "Login: ";
 	std::cin >> login;
 
-	list<User>::iterator it = findUser(login);
+	std::list<User>::iterator it = findUser(login);
 
 	try
 	{
@@ -72,8 +108,7 @@ void Chat::registerUser()
 	} while (valueIsBusy);
 	
 	chatUsers_.emplace_back(login, digest, name);
-	
-	//system("CLS");
+		
 	try
 	{
 		if (chatUsers_.empty())
@@ -100,7 +135,7 @@ void Chat::registerUser()
 
 void Chat::deleteUser()
 {
-	list<User>::iterator it = checkUser("Delete User:");
+	std::list<User>::iterator it = checkUser("Delete User:");
 	if (it != chatUsers_.end())
 	{
 		gotoCoordinates(lastCoordinateX_, lastCoordinateY_);
@@ -115,7 +150,7 @@ void Chat::deleteUser()
 
 void Chat::loginUser()
 {	
-	list<User>::iterator it = checkUser("User login:");
+	std::list<User>::iterator it = checkUser("User login:");
 	if (it != chatUsers_.end())
 	{
 		loginUser_ = it;
@@ -127,7 +162,6 @@ void Chat::loginUser()
 
 void Chat::chatMenu()
 {
-	//system("CLS");
 	loginUser();
 
 	char action{};
@@ -180,6 +214,7 @@ void Chat::chatMenu()
 			std::cout << "\033[1;33;44mWrong command. Please type n, v, u or e...\033[0m";
 		}		
 	} while (action != 'e');
+
 	lastCoordinateY_ = 0;
 	outInformationLines();
 	outSelectAction();
@@ -226,24 +261,20 @@ void Chat::newMessage(TrieNode* root)
 	{
 		gotoCoordinates(19, 18);
 		std::cout << "\033[1;33;44mYou are sending a message to yourself...\033[0m";
-		//clearingTheInputWindow();
-		//gotoCoordinates(0, 19);
 		isPrivateMessage = true;
 	}
 	else
 	{
 		gotoCoordinates(30, 18);
 		std::cout << "\033[1;33;44mInput message text:\033[0m";
-	}
+	}	
 	
-	//std::string messageText{ "" };
-	//std::cout << "Input message text: ";
+	std::string messageText{ creatingMessage(root, lastCoordinateX_, lastCoordinateY_) };
 
-	// Create function prefix input
-	//std::cin.ignore(1, '\n');
-	//std::getline(std::cin, messageText);	
-	
-	std::string messageText{ creatingMessage(root) };
+	if (messageText.empty())
+	{
+		return;
+	}
 
 	chatMessages_.push_back(Message{ loginUser_->getName(), to, messageText,  getTheTimeNow(), isPrivateMessage });
 
@@ -271,7 +302,7 @@ void Chat::newMessage(TrieNode* root)
 	outSelectAction();
 }
 
-list<User>::iterator Chat::checkUser(std::string title)
+std::list<User>::iterator Chat::checkUser(std::string title)
 {	
 	if (chatUsers_.empty())
 	{
@@ -295,7 +326,7 @@ list<User>::iterator Chat::checkUser(std::string title)
 	std::cout << "Password: ";
 	std::cin >> password;
 
-	list<User>::iterator it = findUser(login);
+	std::list<User>::iterator it = findUser(login);
 
 	try
 	{
@@ -322,16 +353,13 @@ list<User>::iterator Chat::checkUser(std::string title)
 		outInformationLines();
 		gotoCoordinates(19, 18);
 		std::cout << warning.what() << "login or password incorrect...\033[0m";
-		//clearingTheInputWindow();
-		/*system("CLS");
-		outInformationLines();*/
 		return chatUsers_.end();
 	}
 }
 
-list<User>::iterator Chat::findUser(const std::string& _login)
+std::list<User>::iterator Chat::findUser(const std::string& _login)
 {
-	list<User>::iterator it = chatUsers_.begin();
+	std::list<User>::iterator it = chatUsers_.begin();
 
 	for (User& user : chatUsers_)
 	{
@@ -376,7 +404,6 @@ void Chat::viewChat()
 	std::string addMeFrom{};
 	std::string addFrom{};
 	std::string addRecipient{};
-	//std::string addTo{};
 		
 	for (auto& element : chatMessages_)
 	{			
@@ -400,8 +427,7 @@ void Chat::viewChat()
 			else
 			{
 				addRecipient = "\033[0m to \033[1;4;36m" + element.getTo();
-			}			
-			/*addTo = element.getTo() == "" ? "" : "\033[0m to \033[1;4;36m";*/
+			}	
 
 			std::cout << "\033[1;4;33m" << addFrom << addMeFrom << addRecipient
 				      << "\033[0m \033[1;4;32m" << element.getCreationTime() << "\033[0m: " 

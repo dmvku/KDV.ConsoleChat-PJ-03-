@@ -18,7 +18,7 @@ public:
 	const uint* getPasswordHash() const;
 	const std::string& getName() const;
 
-	void setPassword(std::string& password);
+	//void setPassword(std::string& password);
 	void setName(std::string& name);
 
 private:

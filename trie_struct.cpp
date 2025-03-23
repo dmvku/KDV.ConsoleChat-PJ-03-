@@ -236,7 +236,7 @@ void findMinPrefixes(TrieNode* root, char buffer[], int index, std::string& resu
     buffer[0] = -(index - 1);    
 }
 
-std::string creatingMessage(TrieNode* root)
+std::string creatingMessage(TrieNode* root, int& coordX, int& coordY)
 {
     int lastCoordinateX{};
     int lastCoordinateY{};
@@ -247,18 +247,13 @@ std::string creatingMessage(TrieNode* root)
     std::vector<std::string> arrayOfMessageWords{};    
     std::vector<std::string> predictiveList{};
     char pressKey{ '\0' };
-    //gotoCoordinates(0, 19);
 
     clearingTheInputWindow();
-    /*outInformationLines();
-    gotoCoordinates(30, 18);
-    std::cout << "\033[1;33;44mInput message text:\033[37; 0m";*/
     gotoCoordinates(4, 24);
     std::cout << "\033[1;33;44m\033[36m\x11\033[33m previous word   \033[36m\x10"
         << "\033[33m next word   \033[36m\x1E\033[33m page up   \033[36m\x1F"
         << "\033[33m page down   \033[36mEnter\033[33m - confirm\033[37;0m";
     gotoCoordinates(0, 19);
-    //std::cout << "Input message text:\n"; // temp    
 
     do
     {        
@@ -270,21 +265,25 @@ std::string creatingMessage(TrieNode* root)
         if (pressKey == 8)    // key "Backspace"
         {
             if (!prefix.empty())
-            {
-                //std::cout << "\b";                
+            {              
                 prefix.pop_back();
+                if (prefix.empty())
+                {
+                    postfix.clear();
+                }
                 std::cout << "\033[0K";
                 predictiveList.clear();
                 pressKey = '\0';
                 lastCoordinateX = getXcoord();
                 lastCoordinateY = getYcoord();
+                coordX = 0;
+                coordY = 0;
                 gotoCoordinates(79, 17);
                 std::cout << "\033[1J";
                 gotoCoordinates(lastCoordinateX, lastCoordinateY);
             }
             else
-            {
-                //std::cout << "\b";
+            {   
                 if (isContainsNonLetters(arrayOfMessageWords.back()))
                 {
                     arrayOfMessageWords.pop_back();
@@ -310,7 +309,12 @@ std::string creatingMessage(TrieNode* root)
         }
         else if (pressKey == 13)   // key "Enter"
         {
-            
+            if (arrayOfMessageWords.empty())
+            {
+                outInformationLines();
+                outSelectAction();
+                return "";
+            }
 
             if (postfix.size())
             {
@@ -322,8 +326,6 @@ std::string creatingMessage(TrieNode* root)
                     prefix.front() -= 32;
                 }
                 arrayOfMessageWords.push_back(prefix + postfix);
-                //arrayOfMessageWords.push_back(" ");
-                //newMessage += prefix + postfix + ' ';
                 std::cout << "\033[0K" << postfix;
                 isCapitalLetter = false;
                 prefix.clear();
@@ -343,7 +345,6 @@ std::string creatingMessage(TrieNode* root)
                 }
                
                 arrayOfMessageWords.push_back(prefix);
-                //newMessage += prefix;
                 
                 gotoCoordinates(lastCoordinateX, lastCoordinateY);
 
@@ -353,8 +354,7 @@ std::string creatingMessage(TrieNode* root)
                 }
                 
                 return newMessage;
-            }
-            
+            }            
         }
         else if (pressKey >= 32 && pressKey <= 126)
         {
@@ -417,8 +417,7 @@ std::string creatingMessage(TrieNode* root)
                         arrayOfMessageWords.push_back(" ");
                     }
                    
-                    std::cout << "\033[0K";
-                    //newMessage += prefix + ' ';                                   
+                    std::cout << "\033[0K";                       
                 }
                 
                 predictiveList.clear();
@@ -457,8 +456,6 @@ std::string creatingMessage(TrieNode* root)
             size_t pagesInTheDictionary{ predictiveList.size() % wordsOfTheScreen
                 ? predictiveList.size() / wordsOfTheScreen + 1
                 : predictiveList.size() / wordsOfTheScreen };
-            //int wordCoordinateX{ 0 };
-            //int wordCoordinateY{ 0 };
             int wordPositionX{};
             int wordPositionY{};
 
@@ -539,7 +536,6 @@ std::string creatingMessage(TrieNode* root)
                                 wordPositionY = (wordNumber % wordsOfTheScreen) / 5;
                                 gotoCoordinates(wordPositionX * 15, wordPositionY);
                                 std::cout << predictiveList.at(wordNumber);
-                                //int listCoordinateY = getYcoord();
                                 if (wordPositionX == 4 && wordPositionY == 18)
                                 {
                                     wordNumber = predictiveList.size();
@@ -560,11 +556,8 @@ std::string creatingMessage(TrieNode* root)
                 {
                     predictiveList.clear();
                 }
-            }
-
-            
-        }        
-       
+            }            
+        }               
     } while (true);
 }
 
@@ -583,7 +576,6 @@ void read_dict(std::string& filename, TrieNode* root)
     system("CLS");
     gotoCoordinates(23, 10);
     std::cout << "Default dictionary - \"dict.txt\".";
-
     gotoCoordinates(7, 11);
     std::cout << "Do you want to use your dictionary (y - yes, other key - no) ? ";
     action = _getche();
@@ -625,7 +617,6 @@ void write_dict(std::string& filename, TrieNode* root)
     system("CLS");
     gotoCoordinates(23, 10);
     std::cout << "Default dictionary - \"" << filename << "\".";
-
     gotoCoordinates(1, 11);
     std::cout << "Do you want to save the dictionary to your file (y - yes, other key - no) ? ";
     action = _getche();
