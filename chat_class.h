@@ -3,6 +3,7 @@
 #include "message_class.h"
 #include "exception_class.h"
 
+#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <string>

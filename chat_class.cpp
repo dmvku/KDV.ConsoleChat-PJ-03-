@@ -24,7 +24,8 @@ void Chat::mainMenu()
 			registerUser();
 			break;
 		case 'e':
-			std::cout << "Exit programm...";
+			system("clear");
+			std::cout << "Exit programm...\n";
 			break;
 		default:
 			std::cout << "Wrong command. Please type l, r or e...";
@@ -94,9 +95,16 @@ void Chat::registerUser()
 
 	chatUsers_.push_back(User{ login, password, name });
 	std::ofstream fs(usersFile_, ios::app);
+	std::filesystem::permissions(usersFile_,
+		std::filesystem::perms::group_all | std::filesystem::perms::others_all,
+		std::filesystem::perm_options::remove);
+
 	if (!fs)
 	{
 		fs = ofstream(usersFile_, ios::out | ios::trunc);
+		std::filesystem::permissions(usersFile_,
+			std::filesystem::perms::group_all | std::filesystem::perms::others_all,
+			std::filesystem::perm_options::remove);
 	}
 
 	if (fs)
@@ -109,14 +117,14 @@ void Chat::registerUser()
 		return;
 	}
 
-	std::cout << "User \033[1;33m" << chatUsers_.back().getName() << "\033[0m is registred...\n\n";
+	std::cout << "User \033[1;33m" << chatUsers_.back().getName() << "\033[0m is registred...\n";
 }
 
 void Chat::loginUser()
 {	
 	if (chatUsers_.empty())
 	{
-		std::cout << "Users not found. Please register...\n\n";
+		std::cout << "Users not found. Please register...\n";
 		return;
 	}
 	std::string login{};
@@ -149,7 +157,7 @@ void Chat::loginUser()
 		}
 		catch (std::exception& warning)
 		{
-			std::cout << warning.what() << "login or password incorrect.\nType \"e\" for exit or any key for try again...\n\n";
+			std::cout << warning.what() << "login or password incorrect.\nType \"e\" for exit or any key for try again...\n";
 			char exitLogin{};
 			std::cin >> exitLogin;
 			std::cout << "\b";
@@ -206,7 +214,7 @@ void Chat::newMessage()
 	std::cout << "Select message type: \nw - write to the user\np - write to the user privately\nother key - to all\n";
 	char messageType{};
 	bool isPrivateMessage{ false };
-	std::string to{ "" };
+	std::string to{ "to_all" };
 	std::cin >> messageType;
 	std::cout << "\b";
 	if (messageType == 'p')
@@ -235,9 +243,38 @@ void Chat::newMessage()
 	
 	std::string messageText{ "" };
 	std::cout << "Input massage text:\n";
-	std::cin.ignore();
-	std::getline(std::cin, messageText);	
-	chatMessages_.push_back(Message{ loginUser_->getName(), to, messageText, isPrivateMessage });
+	std::cin.ignore(1, '\n');
+	std::getline(std::cin, messageText);
+        if (messageText == "")
+	{
+	        return;
+	}
+
+	//chatMessages_.push_back(Message{ loginUser_->getName(), to, messageText, isPrivateMessage });
+
+	std::ofstream fs(messagesFile_, ios::app);
+	std::filesystem::permissions(messagesFile_,
+		std::filesystem::perms::group_all | std::filesystem::perms::others_all,
+		std::filesystem::perm_options::remove);
+
+	if (!fs)
+	{
+		fs = ofstream(messagesFile_, ios::out | ios::trunc);
+		std::filesystem::permissions(messagesFile_,
+			std::filesystem::perms::group_all | std::filesystem::perms::others_all,
+			std::filesystem::perm_options::remove);
+	}
+
+	if (fs)
+	{
+		fs << loginUser_->getName() << '\n' << to << '\n' << messageText << '\n'
+			<< isPrivateMessage << '\n';
+	}
+	else
+	{
+		cout << "Could not open file messages.data!" << '\n';
+		return;
+	}
 }
 
 bool Chat::checkUserLogin(std::string& login)
@@ -273,33 +310,64 @@ void Chat::viewChat()
 	std::string to{};
 	std::string message{};
 	bool isPrivate{};
-	int maxMessagesOnTheScreen{ 10 };
+	int maxMessagesOnTheScreen{ 15 };
 	int countMessagesOnTheScreen{};
+
+	std::string addMeFrom{};
+	//std::string addFrom{};
+	std::string addRecipient{};
 
 	if (!fs)
 	{
-		cout << "There are no messages in the chat...\n!";		\
+		cout << "There are no messages in the chat...\n!";
 	}
 	else		
 	{
 		while (!fs.eof())
-		{
-			fs >> from >> to >> message >> isPrivate;
-			if (from == loginUser_->getName() || to == "" || to == loginUser_->getName() || !isPrivate)
+		{			
+			fs >> from;			
+			if (from == "")
 			{
-				std::cout << "\033[1;4;33m" << (from == loginUser_->getName() ? "me" : from)
-					<< "\033[0m" << (to == "" ? "" : " to \033[1;4;36m" + to)
-					<< "\033[0m: " << message << "\n";
+				break;
 			}
+			fs >> to;
+			fs.ignore(1, '\n');
+			std::getline(fs, message);
+			fs >> isPrivate;
+			
+			if (from == loginUser_->getName() || to == "to_all" || to == loginUser_->getName() || !isPrivate)
+			{
+				//addFrom = findUser(element.getFrom()) == chatUsers_.end() ? "\033[0mdeleted" : element.getFrom();
+				addMeFrom = from == loginUser_->getName() ? "\033[0m(me)" : "";
+				if (to == "to_all")
+				{
+					addRecipient = "";
+				}
+				else if (to == loginUser_->getName())
+				{
+					addRecipient = "\033[0m to myself";
+				}
+				/*else if (findUser(element.getTo()) == chatUsers_.end() && element.getTo() != "")
+				{
+					addRecipient = "\033[0m to deleted";
+				}*/
+				else
+				{
+					addRecipient = "\033[0m to \033[1;4;36m" + to;
+				}
 
-			countMessagesOnTheScreen++;
+				std::cout << "\033[1;4;33m" << from << addMeFrom << addRecipient
+					<< "\033[0m: " << message << "\n";				
+
+				countMessagesOnTheScreen++;
+			}			
 
 			if (countMessagesOnTheScreen == maxMessagesOnTheScreen)
 			{
 				char action{ '\0' };
 				std::cout << "Continue (y - yes, other key - no)? ";
 				std::cin >> action;
-				if (action != 'y' || action != 'Y')
+				if (action != 'y' && action != 'Y')
 				{
 					return;
 				}
@@ -308,26 +376,12 @@ void Chat::viewChat()
 				std::cout << "           CHAT:\n";
 				countMessagesOnTheScreen = 0;
 			}
+
+			from = "";
+			to = "";
+			message = "";
 		}
 	}		
-	
-	/*system("clear");
-	if (chatMessages_.empty())
-	{
-		std::cout << "There are no messages in the chat...\n";
-		return;
-	}
-	std::cout << "           CHAT:\n";
-	for (auto& element : chatMessages_)
-	{
-		if (element.getFrom() == loginUser_->getName() || element.getTo() == ""
-			|| element.getTo() == loginUser_->getName() || !element.getIsPrivateMessage())
-		{
-			std::cout << "\033[1;4;33m" << (element.getFrom() == loginUser_->getName() ? "me" : element.getFrom())
-				      << "\033[0m" << (element.getTo() == "" ? "" : " to \033[1;4;36m" + element.getTo())
-				      << "\033[0m: " << element.getMessage() << "\n";
-		}		
-	}*/
 }
 
 void Chat::userList()
@@ -357,7 +411,15 @@ void Chat::readUsersFile()
 		while(!fs.eof())
 		{
 			fs >> login >> password >> name;
+			if (login == "")
+			{
+				break;
+			}
 			chatUsers_.push_back(User{ login, password, name });
+
+			login = "";
+			password = "";
+			name = "";
 		}		
 	}	
 }
