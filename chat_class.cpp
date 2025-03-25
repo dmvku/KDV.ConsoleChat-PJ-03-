@@ -245,12 +245,16 @@ void Chat::newMessage()
 	std::cout << "Input massage text:\n";
 	std::cin.ignore(1, '\n');
 	std::getline(std::cin, messageText);
-        if (messageText == "")
+	if (messageText == "")
 	{
-	        return;
+		return;
 	}
 
-	//chatMessages_.push_back(Message{ loginUser_->getName(), to, messageText, isPrivateMessage });
+	std::cout << "\nMessage added:\n";
+	std::cout << "Me to " << (to == "myself" ? "myself" : "\033[1;4;36m" + to + "\033[0m")
+		<< ": " << messageText << "\n";
+
+		//chatMessages_.push_back(Message{ loginUser_->getName(), to, messageText, isPrivateMessage });
 
 	std::ofstream fs(messagesFile_, ios::app);
 	std::filesystem::permissions(messagesFile_,
