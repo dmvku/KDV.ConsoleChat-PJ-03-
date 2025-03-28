@@ -94,14 +94,14 @@ void Chat::registerUser()
 	} while (valueIsBusy);
 
 	chatUsers_.push_back(User{ login, password, name });
-	std::ofstream fs(usersFile_, ios::app);
+	std::ofstream fs(usersFile_, std::ios::app);
 	std::filesystem::permissions(usersFile_,
 		std::filesystem::perms::group_all | std::filesystem::perms::others_all,
 		std::filesystem::perm_options::remove);
 
 	if (!fs)
 	{
-		fs = ofstream(usersFile_, ios::out | ios::trunc);
+		fs = std::ofstream(usersFile_, std::ios::out | std::ios::trunc);
 		std::filesystem::permissions(usersFile_,
 			std::filesystem::perms::group_all | std::filesystem::perms::others_all,
 			std::filesystem::perm_options::remove);
@@ -113,7 +113,7 @@ void Chat::registerUser()
 	}
 	else
 	{
-		cout << "Could not open file users.data!" << '\n';
+		std::cout << "Could not open file users.data!" << '\n';
 		return;
 	}
 
@@ -256,14 +256,14 @@ void Chat::newMessage()
 
 		//chatMessages_.push_back(Message{ loginUser_->getName(), to, messageText, isPrivateMessage });
 
-	std::ofstream fs(messagesFile_, ios::app);
+	std::ofstream fs(messagesFile_, std::ios::app);
 	std::filesystem::permissions(messagesFile_,
 		std::filesystem::perms::group_all | std::filesystem::perms::others_all,
 		std::filesystem::perm_options::remove);
 
 	if (!fs)
 	{
-		fs = ofstream(messagesFile_, ios::out | ios::trunc);
+		fs = std::ofstream(messagesFile_, std::ios::out | std::ios::trunc);
 		std::filesystem::permissions(messagesFile_,
 			std::filesystem::perms::group_all | std::filesystem::perms::others_all,
 			std::filesystem::perm_options::remove);
@@ -276,7 +276,7 @@ void Chat::newMessage()
 	}
 	else
 	{
-		cout << "Could not open file messages.data!" << '\n';
+		std::cout << "Could not open file messages.data!" << '\n';
 		return;
 	}
 }
@@ -309,7 +309,7 @@ void Chat::viewChat()
 {
 	system("clear");
 	std::cout << "           CHAT:\n";
-	std::ifstream fs(messagesFile_, ios::in);
+	std::ifstream fs(messagesFile_, std::ios::in);
 	std::string from{};
 	std::string to{};
 	std::string message{};
@@ -323,7 +323,7 @@ void Chat::viewChat()
 
 	if (!fs)
 	{
-		cout << "There are no messages in the chat...\n!";
+		std::cout << "There are no messages in the chat...\n!";
 	}
 	else		
 	{
@@ -400,14 +400,14 @@ void Chat::userList()
 
 void Chat::readUsersFile()
 {	
-	std::ifstream fs(usersFile_, ios::in);
+	std::ifstream fs(usersFile_, std::ios::in);
 	std::string login{};
 	std::string password{};
 	std::string name{};	
 	
 	if (!fs)
 	{
-		cout << "Users not found. Please register...\n!";
+		std::cout << "Users not found. Please register...\n!";
 		return;
 	}
 	else
