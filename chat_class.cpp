@@ -40,9 +40,14 @@ void Chat::registerUser()
 	std::string password{};
 	std::string name{};
 	bool valueIsBusy{};
-	system("clear");
-	std::cout << "Register new user:\n";
 
+#if defined(_WIN32)
+	system("CLS");
+#else
+	system("clear");	
+#endif
+
+	std::cout << "Register new user:\n";
 	do
 	{		
 		valueIsBusy = false;
@@ -171,7 +176,12 @@ void Chat::loginUser()
 
 void Chat::chatMenu()
 {	
+#if defined(_WIN32)
+	system("CLS");
+#else
 	system("clear");
+#endif
+
 	loginUser();
 	
 	char action{ '\0' };
@@ -210,7 +220,12 @@ void Chat::chatMenu()
 
 void Chat::newMessage()
 {
+#if defined(_WIN32)
+	system("CLS");
+#else
 	system("clear");
+#endif
+
 	std::cout << "Select message type: \nw - write to the user\np - write to the user privately\nother key - to all\n";
 	char messageType{};
 	bool isPrivateMessage{ false };
@@ -307,7 +322,12 @@ bool Chat::checkUserName(std::string& name)
 
 void Chat::viewChat()
 {
+#if defined(_WIN32)
+	system("CLS");
+#else
 	system("clear");
+#endif
+
 	std::cout << "           CHAT:\n";
 	std::ifstream fs(messagesFile_, std::ios::in);
 	std::string from{};
@@ -390,7 +410,12 @@ void Chat::viewChat()
 
 void Chat::userList()
 {
+#if defined(_WIN32)
+	system("CLS");
+#else
 	system("clear");
+#endif
+
 	std::cout << "           User List:\n";
 		for (auto& element : chatUsers_)
 		{
