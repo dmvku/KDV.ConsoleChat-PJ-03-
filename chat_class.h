@@ -2,6 +2,7 @@
 #include "user_class.h"
 #include "message_class.h"
 #include "exception_class.h"
+#include "sha1.h"
 
 #include <filesystem>
 #include <iostream>
@@ -9,8 +10,6 @@
 #include <string>
 #include <vector>
 #include <memory>
-
-//using namespace std;
 
 class Chat
 {
@@ -39,9 +38,6 @@ private:
 	std::string usersFile_{ "users.data" };
 	std::string messagesFile_{ "messages.data" };
 
-	//std::string checkLogin();
-
-
-	
+	//std::string checkLogin();	
 
 };

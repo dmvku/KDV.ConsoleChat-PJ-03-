@@ -1,7 +1,8 @@
 #include "user_class.h"
 
-User::User(const std::string& login, const std::string& password, const std::string& name)
-	: login_{ login }, password_{ password }, name_{ name } {}
+User::User(const std::string& login, const std::string& passwordHash,
+	const std::string& name)
+	: login_{ login }, passwordHash_{ passwordHash }, name_{ name } {}
 
 User::~User()
 {
@@ -13,9 +14,9 @@ const std::string& User::getLogin() const
 	return login_;
 }
 
-const std::string& User::getPassword() const
+const std::string& User::getPasswordHash() const
 {
-	return password_;
+	return passwordHash_;
 }
 
 const std::string& User::getName() const
@@ -28,9 +29,9 @@ void User::setLogin(std::string& login)
 	login_ = login;
 }
 
-void User::setPassword(std::string& password)
+void User::setPasswordHash(std::string& passwordHash)
 {
-	password_ = password;
+	passwordHash_ = passwordHash;
 }
 
 void User::setName(std::string& name)
