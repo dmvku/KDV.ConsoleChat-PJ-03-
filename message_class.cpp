@@ -1,9 +1,8 @@
 #include "message_class.h"
 
-Message::Message(const std::string& from, const std::string& to,
-	const std::string& message, bool isPrivateMessage) :
-	from_{ from }, to_{ to }, message_{ message },
-	isPrivateMessage_(isPrivateMessage) {}
+Message::Message(const std::string& from, const std::string& to, const std::string& message, bool isPrivateMessage)
+	: from_{ from }, to_{ to }, message_{ message }, isPrivateMessage_(isPrivateMessage) {
+}
 
 Message::~Message()
 {

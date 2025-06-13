@@ -2,11 +2,12 @@
 
 User::User(const std::string& login, const std::string& passwordHash,
 	const std::string& name)
-	: login_{ login }, passwordHash_{ passwordHash }, name_{ name } {}
+	: login_{ login }, passwordHash_{ passwordHash }, name_{ name } {
+}
 
 User::~User()
 {
-	
+
 }
 
 const std::string& User::getLogin() const
@@ -38,4 +39,3 @@ void User::setName(std::string& name)
 {
 	name_ = name;
 }
-	
