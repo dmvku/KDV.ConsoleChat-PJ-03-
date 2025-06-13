@@ -1,475 +1,300 @@
 #include "chat_class.h"
+#include "sha1.h"
+
+#include <iostream>
+#include <string>
+#include <limits>
+
+Chat::Chat()
+{
+    
+}
 
 Chat::~Chat()
 {
 
 }
 
-void Chat::mainMenu()
+void Chat::startClient()
+{        
+    configuringTheServerConnection();
+    if (serverAddress_ == "0" || serverPort_ == 0)
+    {
+        std::cout << "Exit chat...\n";
+        return;
+    }
+    createSocket();    
+    interactionWithTheServer();
+}
+
+void Chat::configuringTheServerConnection()
 {
-	readUsersFile();
-
-	char action{ '\0' };
-	do
-	{
-		std::cout << "Select action:\nl - Login\nr - Register\n"
-			<< "e - Exit programm\n";
-		std::cin >> action;
-
-		switch (action)
-		{
-		case 'l':
-			chatMenu();
-			break;
-		case 'r':
-			registerUser();
-			break;
-		case 'e':
-			system("clear");
-			std::cout << "Exit programm...\n";
-			break;
-		default:
-			std::cout << "Wrong command. Please type l, r or e...";
-		}
-	} while (action != 'e');
-
+    serverAddress_ = serverConfig_.getAddressIP();
+    serverPort_ = serverConfig_.getPort();
 }
 
-void Chat::registerUser()
+void Chat::createSocket()
 {
-	std::string login;
-	std::string password;
-	std::string passwordHash;
-	std::string name;
-	bool valueIsBusy{};
+    // Создадим сокет
+    socket_file_descriptor = socket(AF_INET, SOCK_STREAM, 0);
+    if (socket_file_descriptor == -1)
+    {
+        std::cout << "Creation of Socket failed!\n";
+        exit(1);
+    }
+    std::cout << "Socket is creation...\n";    
 
-#if defined(_WIN32)
-	system("CLS");
-#else
-	system("clear");	
-#endif
-
-	std::cout << "Register new user:\n";
-	do
-	{		
-		valueIsBusy = false;
-		std::cout << "Login: ";
-		std::cin >> login;
-		for (auto& element : chatUsers_)
-		{
-			try
-			{
-				if (element.getLogin() == login)
-				{
-					throw Warning();
-				}
-			}
-			catch (std::exception& warning)
-			{
-				std::cout << warning.what()
-					<< "login is busy. Сhoose a different login...\n";
-				valueIsBusy = true;
-				break;
-			}
-		}
-	} while (valueIsBusy);
-
-	std::cout << "Password: ";
-	std::cin >> password;
-	
-	do
-	{
-		valueIsBusy = false;
-		std::cout << "Name: ";
-		std::cin >> name;
-
-		for (auto& element : chatUsers_)
-		{
-			try
-			{
-				if (element.getName() == name)
-				{
-					throw Warning();
-				}
-			}
-			catch (std::exception& warning)
-			{
-				std::cout << warning.what()
-					<< "name is busy. Сhoose a different name...\n";
-				valueIsBusy = true;
-				break;
-			}
-		}
-	} while (valueIsBusy);
-		
-	passwordHash = passwordHashing(password);
-	
-	chatUsers_.push_back(User{ login, password, name });
-	std::ofstream fs(usersFile_, std::ios::app);
-	std::filesystem::permissions(usersFile_,
-		std::filesystem::perms::group_all | std::filesystem::perms::others_all,
-		std::filesystem::perm_options::remove);
-
-	if (!fs)
-	{
-		fs = std::ofstream(usersFile_, std::ios::out | std::ios::trunc);
-		std::filesystem::permissions(usersFile_,
-			std::filesystem::perms::group_all | std::filesystem::perms::others_all,
-			std::filesystem::perm_options::remove);
-	}
-
-	if (fs)
-	{
-		fs << login << std::endl << password << std::endl << name << std::endl;
-	}
-	else
-	{
-		std::cout << "Could not open file users.data!" << '\n';
-		return;
-	}
-
-	std::cout << "User \033[1;33m" << chatUsers_.back().getName()
-		<< "\033[0m is registred...\n";
+    // Установим адрес сервера
+    serveraddress.sin_addr.s_addr = inet_addr(serverAddress_.c_str());
+    // Зададим номер порта
+    serveraddress.sin_port = htons(serverPort_);
+    // Используем IPv4
+    serveraddress.sin_family = AF_INET;
+    std::cout << "Apply server parameters...\n";
 }
 
-void Chat::loginUser()
-{	
-	if (chatUsers_.empty())
-	{
-		std::cout << "Users not found. Please register...\n";
-		return;
-	}
-	std::string login;
-	std::string password;
-	std::string passwordHash;
-	std::cout << "User login:\n";
-	
-	bool correctUser = false;
-	do
-	{
-		std::cout << "Login: ";
-		std::cin >> login;
-
-		std::cout << "Password: ";
-		std::cin >> password;
-		passwordHash = passwordHashing(password);
-
-		for (auto& element : chatUsers_)
-		{
-			if (element.getLogin() == login && element.getPasswordHash() == passwordHash)
-			{
-				correctUser = true;
-				loginUser_ = std::make_shared<User>(element);
-				break;
-			}
-		}
-		try
-		{
-			if (!correctUser)
-			{
-				throw Warning();
-			}
-		}
-		catch (std::exception& warning)
-		{
-			std::cout << warning.what() << "login or password incorrect.\n"
-				<< "Type \"e\" for exit or any key for try again...\n";
-			char exitLogin{};
-			std::cin >> exitLogin;
-			std::cout << "\b";
-			if (exitLogin == 'e')
-			{
-				break;
-			}
-		}		
-	} while (!correctUser);		
+void Chat::connectionToTheServer()
+{    
+    // Установим соединение с сервером
+    int numberOfAttempts{ 3 };    
+    for (int attempts = 1; attempts <= numberOfAttempts; attempts++)
+    {
+        std::cout << "Connecting to the server. Attempts - " << attempts << "\n";
+        connection = connect(socket_file_descriptor,
+            (struct sockaddr*)&serveraddress, sizeof(serveraddress));
+        if (connection == -1)
+        {            
+            if (attempts == numberOfAttempts)
+            {
+                std::cout << "Connection with the server failed!\n";
+                exit(1);
+            }
+            std::cout << "Not connection to the server!\nPause 10 sec.\n";
+            sleep(10);
+        }
+        else
+        {
+            break;
+        }
+    }
 }
 
-void Chat::chatMenu()
-{	
-#if defined(_WIN32)
-	system("CLS");
-#else
-	system("clear");
-#endif
-
-	loginUser();
-	
-	char action{ '\0' };
-	if (loginUser_ == nullptr)
-	{
-		return;
-	}
-
-	std::cout << "User \033[1;33m" << loginUser_->getName()
-		<< "\033[0m is login...\n";
-	
-	do
-	{		
-		std::cout << "\nSelect action:\nn - New message\nv - View messages\n"
-			<< "u - User list\ne - Exit chat\n";
-		std::cin >> action;
-		std::cout << "\b";
-		switch (action)
-		{
-		case 'n':
-			newMessage();
-			break;		
-		case 'v':
-			viewChat();
-			break;
-		case 'u':
-			userList();
-			break;
-		case 'e':
-			std::cout << "Exit chat...\n";
-			loginUser_ = nullptr;
-			break;
-		default:
-			std::cout << "Wrong command. Please type n, v, u or e... ";
-		}
-	} while (action != 'e');
-}
-
-void Chat::newMessage()
+void Chat::interactionWithTheServer()
 {
-#if defined(_WIN32)
-	system("CLS");
-#else
-	system("clear");
-#endif
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-	std::cout << "Select message type: \nw - write to the user\n"
-		<< "p - write to the user privately\nother key - to all\n";
-	char messageType{};
-	bool isPrivateMessage{ false };
-	std::string to{ "to_all" };
-	std::cin >> messageType;
-	std::cout << "\b";
-	if (messageType == 'p')
-	{
-		isPrivateMessage = true;
-	}
+    while (1)
+    {
+        connectionToTheServer();
 
-	if (messageType == 'p' || messageType == 'w')
-	{
-		std::cout << "Input user name: ";
-		std::cin >> to;
-		if (!checkUserName(to) )
-		{
-			std::cout << "The user named " << to << " was not found...";
-			return;
-		}
-	}
+        std::cout << "The connection to the server is established\n";
+        std::string receivedData;        
 
-	// A message to yourself - a note
-	if (to == loginUser_->getName())
-	{
-		std::cout << "You are sending a message to yourself...\n";
-		isPrivateMessage = true;
-		to = "myself";
-	}
-	
-	std::string messageText{ "" };
-	std::cout << "Input massage text:\n";
-	std::cin.ignore(1, '\n');
-	std::getline(std::cin, messageText);
-	if (messageText == "")
-	{
-		return;
-	}
+        while (1)
+        {
+            dataRecieving();
+            receivedData = std::string(message);
+            std::string keyCommand = dataParsing(receivedData);
 
-	std::cout << "\nMessage added:\n";
-	std::cout << "Me to "
-		<< (to == "myself" ? "myself" : "\033[1;4;36m" + to + "\033[0m")
-		<< ": " << messageText << "\n";
+            if (keyCommand == serviceMsg)
+            {
+                std::cout << receivedData;
+                continue;
+            }
+            else if (keyCommand == loginMsg)
+            {
+                currentUser_.setName(receivedData);               
+                std::cout << currentUser_.getName() << "\n";                
+                continue;
+            }
+            else if (keyCommand == passwordMsg)
+            {
+                std::cout << receivedData;
+                std::cin.clear();
+                std::getline(std::cin, sendData_);               
+                sendData_ = passwordHashing(sendData_);                
+                dataTransmission();
+                continue;
+            }           
+            else if (keyCommand == newMessageMsg)
+            {                
+                createMessage(receivedData);
+                continue;
+            }
+            else if (keyCommand == beginUserListMsg)
+            {
+                recivingChatData('u');
+                continue;
+            }
+            else if (keyCommand == beginChatListMsg)
+            {
+                recivingChatData('c');
+                continue;
+            }
+            else if (keyCommand == exitChatMsg)
+            {
+                std::cout << "Exit chat...\n";
+                close(socket_file_descriptor);
+                return;
+            }            
+            else
+            {
+                std::cout << receivedData;
+            }
+            
+            std::cin.clear();
+            std::getline(std::cin, sendData_);
 
-		//chatMessages_.push_back(Message{ loginUser_->getName(), to, messageText, isPrivateMessage });
-
-	std::ofstream fs(messagesFile_, std::ios::app);
-	std::filesystem::permissions(messagesFile_,
-		std::filesystem::perms::group_all | std::filesystem::perms::others_all,
-		std::filesystem::perm_options::remove);
-
-	if (!fs)
-	{
-		fs = std::ofstream(messagesFile_, std::ios::out | std::ios::trunc);
-		std::filesystem::permissions(messagesFile_,
-			std::filesystem::perms::group_all | std::filesystem::perms::others_all,
-			std::filesystem::perm_options::remove);
-	}
-
-	if (fs)
-	{
-		fs << loginUser_->getName() << '\n' << to << '\n' << messageText << '\n'
-			<< isPrivateMessage << '\n';
-	}
-	else
-	{
-		std::cout << "Could not open file messages.data!" << '\n';
-		return;
-	}
+            if (sendData_ == "v")
+            {
+                std::cout << "        CHAT:\n";
+                viewChat();
+            }
+            else if (sendData_ == "u")
+            {
+                std::cout << "        USER LIST:\n";
+                viewUsers();
+            }            
+                    
+            dataTransmission();
+        }
+    }    
 }
 
-bool Chat::checkUserLogin(std::string& login)
-{
-	for (auto& element : chatUsers_)
-	{
-		if (element.getLogin() == login)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-bool Chat::checkUserName(std::string& name)
-{
-	for (auto& element : chatUsers_)
-	{
-		if (element.getName() == name)
-		{
-			return true;
-		}
-	}
-	return false;
+void Chat::createMessage(std::string& newMessage)
+{    
+    chatMessages_.push_back(Message{ dataParsing(newMessage),
+                    dataParsing(newMessage), dataParsing(newMessage) });
 }
 
 void Chat::viewChat()
-{
-#if defined(_WIN32)
-	system("CLS");
-#else
-	system("clear");
-#endif
+{    
+    int maxMessagesOnTheScreen{ 15 };
+    int countMessagesOnTheScreen{};
 
-	std::cout << "           CHAT:\n";
-	std::ifstream fs(messagesFile_, std::ios::in);
-	std::string from;
-	std::string to;
-	std::string message;
-	bool isPrivate{};
-	int maxMessagesOnTheScreen{ 15 };
-	int countMessagesOnTheScreen{};
+    std::string addMeFrom{};    
+    std::string addRecipient{};
 
-	std::string addMeFrom;
-	//std::string addFrom{};
-	std::string addRecipient;
+    for (auto& element : chatMessages_)
+    {
+        std::string from{ element.getFrom() };
+        std::string to{ element.getTo() };
+        std::string message{ element.getMessage() };
+        addMeFrom = from == currentUser_.getName() ? "\033[0m(me)" : "";
 
-	if (!fs)
-	{
-		std::cout << "There are no messages in the chat...\n!";
-	}
-	else		
-	{
-		while (!fs.eof())
-		{			
-			fs >> from;			
-			if (from == "")
-			{
-				break;
-			}
-			fs >> to;
-			fs.ignore(1, '\n');
-			std::getline(fs, message);
-			fs >> isPrivate;
-			
-			if (from == loginUser_->getName() || to == "to_all"
-				|| to == loginUser_->getName() || !isPrivate)
-			{
-				//addFrom = findUser(element.getFrom()) == chatUsers_.end() ? "\033[0mdeleted" : element.getFrom();
-				addMeFrom = (from == loginUser_->getName() ? "\033[0m(me)" : "");
-				if (to == "to_all")
-				{
-					addRecipient = "";
-				}
-				else if (to == loginUser_->getName())
-				{
-					addRecipient = "\033[0m to myself";
-				}
-				/*else if (findUser(element.getTo()) == chatUsers_.end() && element.getTo() != "")
-				{
-					addRecipient = "\033[0m to deleted";
-				}*/
-				else
-				{
-					addRecipient = "\033[0m to \033[1;4;36m" + to;
-				}
+        if (to == "to_all")
+        {
+            addRecipient = "";
+        }
+        else if (to == currentUser_.getName())
+        {
+            addRecipient = "\033[0m to myself";
+        }
+        else
+        {
+            addRecipient = "\033[0m to \033[1;4;36m" + to;
+        }
 
-				std::cout << "\033[1;4;33m" << from << addMeFrom << addRecipient
-					<< "\033[0m: " << message << "\n";				
+        std::cout << "\033[1;4;33m" << from << addMeFrom << addRecipient
+            << "\033[0m: " << message << "\n";
 
-				countMessagesOnTheScreen++;
-			}			
+        countMessagesOnTheScreen++;
+        
+        if (countMessagesOnTheScreen == maxMessagesOnTheScreen)
+        {
+            char action{ '\0' };
+            std::cout << "Continue (y - yes, other key - no)? ";
+            std::cin >> action;
+            if (action != 'y' && action != 'Y')
+            {
+                return;
+            }
 
-			if (countMessagesOnTheScreen == maxMessagesOnTheScreen)
-			{
-				char action{ '\0' };
-				std::cout << "Continue (y - yes, other key - no)? ";
-				std::cin >> action;
-				if (action != 'y' && action != 'Y')
-				{
-					return;
-				}
-
-				system("clear");
-				std::cout << "           CHAT:\n";
-				countMessagesOnTheScreen = 0;
-			}
-
-			from = "";
-			to = "";
-			message = "";
-		}
-	}		
+            system("clear");
+            std::cout << "           CHAT:\n";
+            countMessagesOnTheScreen = 0;
+        }        
+    }  
+    std::cout << "\n";
 }
 
-void Chat::userList()
+void Chat::viewUsers()
 {
-#if defined(_WIN32)
-	system("CLS");
-#else
-	system("clear");
-#endif
-
-	std::cout << "           User List:\n";
-		for (auto& element : chatUsers_)
-		{
-			std::cout << "\033[1;33m" << element.getName() << "\033[0m\n";
-		}
+    for (auto& element : chatUsers_)
+    {
+        std::cout << "\033[1;4;33m" << element.getName() << "\033[0m\n";
+    }
+    std::cout << "\n";
 }
 
-void Chat::readUsersFile()
-{	
-	std::ifstream fs(usersFile_, std::ios::in);
-	std::string login;
-	std::string password;
-	std::string name;	
-	
-	if (!fs)
-	{
-		std::cout << "Users not found. Please register...\n!";
-		return;
-	}
-	else
-	{
-		while(!fs.eof())
-		{
-			fs >> login >> password >> name;
-			if (login == "")
-			{
-				break;
-			}
-			chatUsers_.push_back(User{ login, password, name });
+void Chat::dataTransmission()
+{
+    bzero(message, MESSAGE_LENGTH);
+    std::copy(sendData_.begin(), sendData_.end(), message);
 
-			login = "";
-			password = "";
-			name = "";
-		}		
-	}	
+    ssize_t bytes = write(socket_file_descriptor, message, sizeof(message));
+    // Если передали >= 0  байт, значит пересылка прошла успешно
+    if (bytes >= 0) {
+        std::cout << "Data successfully sent to the server.!\n";
+    }
 }
 
-void Chat::readMessagesFile()
+void Chat::dataRecieving()
 {
-	
+    bzero(message, MESSAGE_LENGTH);
+    read(socket_file_descriptor, message, MESSAGE_LENGTH);
+    std::cout << "The data is received from the server: "
+        << message << "\n";
+}
+
+void Chat::recivingChatData(char list)
+{
+    std::string recievingData;   
+    std::string endList;
+
+    if (list == 'u')
+    {
+        endList = endUserListMsg;
+    }
+    else
+    {
+        endList = endChatListMsg;
+    }
+
+    do
+    {
+        dataRecieving();
+        recievingData = std::string(message);        
+        if (recievingData != endList)
+        {
+            switch (list)
+            {
+            case 'u':
+                chatUsers_.push_back(User{ recievingData });
+                break;
+            case 'c':
+                createMessage(recievingData);
+            }
+            sendData_ = "#OK";
+            dataTransmission();
+        }
+        else
+        {
+            return;
+        }
+    } while (1);
+}
+
+std::string Chat::dataParsing(std::string& data)
+{
+    std::string separator{ "|" };
+    size_t separatorPoint{ data.find(separator) };
+    if (separatorPoint == std::string::npos)
+    {
+        return "Data error...\n";
+    }
+    std::string value{ data.substr(0, separatorPoint) };
+    data.erase(0, separatorPoint + 1);
+    return value;
 }

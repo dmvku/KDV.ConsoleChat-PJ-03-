@@ -1,43 +1,60 @@
 #pragma once
-#include "user_class.h"
-#include "message_class.h"
-#include "exception_class.h"
-#include "sha1.h"
 
-#include <filesystem>
-#include <iostream>
-#include <fstream>
 #include <string>
 #include <vector>
-#include <memory>
+#include <unistd.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
+#include "connection_config.h"
+#include "user_class.h"
+#include "message_class.h"
+
+#define MESSAGE_LENGTH 1024 // Максимальный размер буфера для данных
+
+constexpr const char* serviceMsg = "#SERVC";
+constexpr const char* loginMsg = "#LOGIN";
+constexpr const char* passwordMsg = "#PASSW";
+constexpr const char* newMessageMsg = "#NEWMS";
+constexpr const char* beginUserListMsg = "#BULST";
+constexpr const char* endUserListMsg = "#EULST";
+constexpr const char* beginChatListMsg = "#BCLST";
+constexpr const char* endChatListMsg = "#ECLST";
+constexpr const char* exitChatMsg = "#EXITC";
 
 class Chat
 {
 public:
-	Chat() = default;
-	~Chat();	
+	Chat();
+	~Chat();
 
-	void mainMenu();	
+	void startClient();	
 
-private:
-	void registerUser();
-	void loginUser();
-	void chatMenu();
-	void newMessage();
-	void viewChat();
-	void userList();	
-	bool checkUserLogin(std::string& to);
-	bool checkUserName(std::string& to);
-	void readUsersFile();
-	void readMessagesFile();
+private:	
+	ConnectionConfig serverConfig_;
+	int socket_file_descriptor, connection;
+	struct sockaddr_in serveraddress, client;
+	char message[MESSAGE_LENGTH];
+	
+	int serverPort_{};
+	std::string serverAddress_;
 
+	User currentUser_;
 	std::vector<User> chatUsers_;
-	std::vector<Message> chatMessages_;
-	std::shared_ptr<User> loginUser_{ nullptr };
-
-	std::string usersFile_{ "users.data" };
-	std::string messagesFile_{ "messages.data" };
-
-	//std::string checkLogin();	
-
+	std::vector<Message> chatMessages_;	
+	std::string sendData_;
+	
+	void configuringTheServerConnection();	
+	void createSocket();
+	void connectionToTheServer();
+	void interactionWithTheServer();
+	void createMessage(std::string& newMessage);
+	void viewChat();
+	void viewUsers();
+	void dataTransmission();
+	void dataRecieving();
+	void recivingChatData(char list);
+	std::string dataParsing(std::string& data);	
 };
+

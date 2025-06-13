@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="chat_main.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="chat_class.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
@@ -27,10 +24,13 @@
     <ClCompile Include="user_class.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="exception_class.cpp">
+    <ClCompile Include="sha1.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="sha1.cpp">
+    <ClCompile Include="connection_config.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="TCP_Client_Linux.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,10 +44,10 @@
     <ClInclude Include="user_class.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
-    <ClInclude Include="exception_class.h">
+    <ClInclude Include="sha1.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
-    <ClInclude Include="sha1.h">
+    <ClInclude Include="connection_config.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
   </ItemGroup>

@@ -3,20 +3,16 @@
 
 class Message
 {
-public:	
-	Message(const std::string& from, const std::string& to,
-		const std::string& message, bool isPrivateMessage);
+public:
+	Message(const std::string& from, const std::string& to, const std::string& message);
 	~Message();
 
 	const std::string getFrom() const;
 	const std::string getTo() const;
-	const std::string getMessage() const;
-	const bool getIsPrivateMessage() const;	
+	const std::string getMessage() const;	
 
 private:
-	std::string from_{};
-	std::string to_{};
-	std::string message_{};
-	bool isPrivateMessage_{ false };
-	void set_Message(std::string& message);
+	std::string from_;
+	std::string to_;
+	std::string message_;
 };

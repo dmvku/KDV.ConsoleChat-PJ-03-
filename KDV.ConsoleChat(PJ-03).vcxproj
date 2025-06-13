@@ -129,15 +129,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="chat_class.cpp" />
-    <ClCompile Include="chat_main.cpp" />
-    <ClCompile Include="exception_class.cpp" />
+    <ClCompile Include="connection_config.cpp" />
     <ClCompile Include="message_class.cpp" />
     <ClCompile Include="sha1.cpp" />
+    <ClCompile Include="TCP_Client_Linux.cpp" />
     <ClCompile Include="user_class.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chat_class.h" />
-    <ClInclude Include="exception_class.h" />
+    <ClInclude Include="connection_config.h" />
     <ClInclude Include="message_class.h" />
     <ClInclude Include="sha1.h" />
     <ClInclude Include="user_class.h" />
