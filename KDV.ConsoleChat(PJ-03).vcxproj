@@ -133,6 +133,7 @@
     <ClCompile Include="exception_class.cpp" />
     <ClCompile Include="message_class.cpp" />
     <ClCompile Include="sha1.cpp" />
+    <ClCompile Include="TCP_Server_Linux.cpp" />
     <ClCompile Include="user_class.cpp" />
   </ItemGroup>
   <ItemGroup>
