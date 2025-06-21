@@ -6,8 +6,6 @@
 
 constexpr const char* connectionConfigFile = "connection.config";
 
-// int port_{};
-
 int readConnectionConfig();
 int checkServerParameters(int port);
 int setServerParameters();

@@ -1,4 +1,4 @@
-#include "user_class.h"
+#include "user.h"
 
 User::User(const std::string& login, const std::string& passwordHash,
 	const std::string& name)

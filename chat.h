@@ -2,17 +2,10 @@
 
 #include <string>
 #include <vector>
-// #include <memory>
 
-#include<unistd.h>
-#include<string.h>
-#include<sys/socket.h>
-#include <netinet/in.h>
-
-#include "user_class.h"
-#include "message_class.h"
-
-#define MESSAGE_LENGTH 1024 // Максимальный размер буфера для данных
+#include "socket.h"
+#include "user.h"
+#include "message.h"
 
 constexpr const char* serviceMsg = "#SERVC|";
 constexpr const char* loginMsg = "#LOGIN|";
@@ -27,28 +20,19 @@ constexpr const char* exitChatMsg = "#EXITC|";
 class Chat
 {
 public:
-	Chat(int port);
+	Chat();
 	~Chat();
 
 	void runChat();
 
-private:	
-	struct sockaddr_in serveraddress, client;
-	socklen_t length;
-	int sockert_file_descriptor, connection, bind_status, connection_status;
-	char message[MESSAGE_LENGTH];
-	int _port{};
-	
+private:		
+	Socket server;
 	std::vector<User> chatUsers_;
 	std::vector<Message> chatMessages_;
-	std::string loginUser_;
-	std::string sendData_;
-
+	std::string loginUser_;	
 	std::string usersFile_{ "users.data" };
 	std::string messagesFile_{ "messages.data" };
 	
-	void startServer();
-	void createConnection();	
 	bool userAutorization();
 	bool registerUser();
 	bool loginUser();
@@ -61,8 +45,10 @@ private:
 	bool checkUserName(std::string& name);
 	void readDataFile(std::string& file);
 	void readUsersFile(std::string& line);
-	void readMessagesFile(std::string& line);
-	void dataTransmission();
-	void dataRecieving();
+	void readMessagesFile(std::string& line);	
 	std::string dataParsing(std::string& data);
+
+	// void viewChat();
+	// void userList();
+	// bool requestProcessing(std::string& data);
 };

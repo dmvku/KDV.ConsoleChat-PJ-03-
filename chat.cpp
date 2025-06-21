@@ -5,92 +5,40 @@
 #include <vector>
 #include <memory>
 
-#include <unistd.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+#include "chat.h"
+#include "exception.h"
 
-#include "chat_class.h"
-#include "connection_config.h"
-#include "user_class.h"
-#include "message_class.h"
-#include "exception_class.h"
-
-Chat::Chat(int port) : _port(port)
-{    
-	startServer();
-	readDataFile(usersFile_);
-	readDataFile(messagesFile_);
+Chat::Chat()
+{   	
+	
 }
 
 Chat::~Chat()
 {
-	close(sockert_file_descriptor);
-}
-
-void Chat::startServer()
-{
-	// Создадим сокет
-	sockert_file_descriptor = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockert_file_descriptor == -1)
-	{
-		std::cout << "Socket creation failed.!\n";
-		exit(1);
-	}
-	// 
-	std::cout << "The socket is created...\n";
-	serveraddress.sin_addr.s_addr = htonl(INADDR_ANY);
-	// Зададим номер порта для связи
-	serveraddress.sin_port = htons(_port);
-	// Используем IPv4
-	serveraddress.sin_family = AF_INET;
-	// Привяжем сокет
-	bind_status = bind(sockert_file_descriptor,
-		(struct sockaddr*)&serveraddress,
-		sizeof(serveraddress));
-	if (bind_status == -1)
-	{
-		std::cout << "Socket binding failed.!\n";
-		exit(1);
-	}
-	std::cout << "The socket is binded...\n";
-	// Поставим сервер на прием данных 
-	connection_status = listen(sockert_file_descriptor, 1);
-	if (connection_status == -1)
-	{
-		std::cout << "Socket is unable to listen for new connections.!\n";
-		exit(1);
-	}	
-}
-
-void Chat::createConnection()
-{
-	std::cout << "Server is listening for new connection: \n";
-	length = sizeof(client);
-	connection = accept(sockert_file_descriptor,
-		(struct sockaddr*)&client, &length);
-	if (connection == -1)
-	{
-		std::cout << "Server is unable to accept the data from client.!"
-			<< std::endl;
-		exit(1);
-	}
-	std::cout << "The connection is established...\n";
+	
 }
 
 void Chat::runChat()
 {
+	if (!server.getPort())
+	{
+		return;
+	}
+
+	readDataFile(usersFile_);
+	readDataFile(messagesFile_);
+
 	std::cout << "Run chat...\n";
 
 	while (1)
 	{
-		createConnection();		
-				
+		server.createConnection();
+		
 		// Call to register or login
 		if (!userAutorization())
 		{
 			std::cout << "End chat...\n";
-			close(sockert_file_descriptor);
+			close(server.sockert_file_descriptor);
 			return;
 		}
 
@@ -99,13 +47,13 @@ void Chat::runChat()
 		if (!chatMenu())
 		{
 			std::cout << "End chat...\n";
-			close(sockert_file_descriptor);
+			close(server.sockert_file_descriptor);
 			return;
 		}
 		else
 		{
 			std::cout << "Logout...\n";
-			close(connection);
+			close(server.connection);
 		}
 	}	
 }
@@ -113,18 +61,18 @@ void Chat::runChat()
 bool Chat::userAutorization()
 {
 	std::cout << "Register...\n";
-	sendData_ = "Hello! Please login(l), register (r) or exit(other key)...\n";
-	dataTransmission();
-	dataRecieving();
+	server.sendData_ = "Hello! Please login(l), register (r) or exit(other key)...\n";
+	server.dataTransmission();
+	server.dataRecieving();
 		
-	switch (message[0])	
+	switch (server.message[0])
 	{
 	case 'l':
 		if (chatUsers_.empty())
 		{
-			sendData_ = serviceMsg
+			server.sendData_ = serviceMsg
 				+ std::string("Users not found. Please register...\n");
-			dataTransmission();
+			server.dataTransmission();
 			return registerUser();
 		}
 		else
@@ -134,14 +82,14 @@ bool Chat::userAutorization()
 	case 'r':
 		return registerUser();		
 	default:
-		sendData_ = exitChatMsg;
-		dataTransmission();
+		server.sendData_ = exitChatMsg;
+		server.dataTransmission();
 		return 0;
 	}
 }
 
 bool Chat::registerUser()
-{	
+{
 	std::string login;
 	std::string passwordHash;
 	std::string name;
@@ -151,10 +99,10 @@ bool Chat::registerUser()
 	do
 	{
 		valueIsBusy = false;
-		sendData_ = "Login: \0";
-		dataTransmission();		
-		dataRecieving();
-		login = std::string(message);
+		server.sendData_ = "Login: \0";
+		server.dataTransmission();
+		server.dataRecieving();
+		login = std::string(server.message);
 
 		try
 		{
@@ -165,27 +113,27 @@ bool Chat::registerUser()
 		}
 		catch (std::exception& warning)
 		{			
-			sendData_ = serviceMsg + std::string(warning.what())
+			server.sendData_ = serviceMsg + std::string(warning.what())
 				+ std::string("login is busy. Сhoose a different login...\n");
-			std::cout << sendData_;
-			dataTransmission();
+			std::cout << server.sendData_;
+			server.dataTransmission();
 			valueIsBusy = true;
 			break;
 		}	
 	} while (valueIsBusy);
 	
-	sendData_ = passwordMsg + std::string("Password: ");
-	dataTransmission();
-	dataRecieving();
-	passwordHash = std::string(message);
+	server.sendData_ = passwordMsg + std::string("Password: ");
+	server.dataTransmission();
+	server.dataRecieving();
+	passwordHash = std::string(server.message);
 
 	do
 	{
 		valueIsBusy = false;
-		sendData_ = "Name: ";
-		dataTransmission();
-		dataRecieving();
-		name = std::string(message);
+		server.sendData_ = "Name: ";
+		server.dataTransmission();
+		server.dataRecieving();
+		name = std::string(server.message);
 		try
 		{
 			if (checkUserName(name))
@@ -195,10 +143,10 @@ bool Chat::registerUser()
 		}
 		catch (std::exception& warning)
 		{
-			sendData_ = serviceMsg + std::string(warning.what())
+			server.sendData_ = serviceMsg + std::string(warning.what())
 				+ std::string("name is busy. Сhoose a different name...\n");
-			std::cout << sendData_;			
-			dataTransmission();			
+			std::cout << server.sendData_;
+			server.dataTransmission();
 			valueIsBusy = true;
 		}
 	} while (valueIsBusy);
@@ -223,8 +171,8 @@ bool Chat::registerUser()
 	fileStream.close();
 
 	loginUser_ = login;
-	sendData_ = serviceMsg + std::string("You are is registred and login...\n");
-	dataTransmission();
+	server.sendData_ = serviceMsg + std::string("You are is registred and login...\n");
+	server.dataTransmission();
 		
 	return true;
 }
@@ -233,21 +181,20 @@ bool Chat::loginUser()
 {
 	std::string login{};
 	std::string passwordHash{};
-
 	std::cout << "Login user...\n";
-
+	
 	bool correctUser = false;
 	do
 	{
-		sendData_ = "Login: ";
-		dataTransmission();
-		dataRecieving();
-		login = std::string(message);
+		server.sendData_ = "Login: ";
+		server.dataTransmission();
+		server.dataRecieving();
+		login = std::string(server.message);
 
-		sendData_ = passwordMsg + std::string("Password: ");
-		dataTransmission();
-		dataRecieving();		
-		passwordHash = std::string(message);
+		server.sendData_ = passwordMsg + std::string("Password: ");
+		server.dataTransmission();
+		server.dataRecieving();
+		passwordHash = std::string(server.message);
 
 		for (auto& element : chatUsers_)
 		{
@@ -256,10 +203,10 @@ bool Chat::loginUser()
 			{
 				correctUser = true;
 				loginUser_ = login;
-				sendData_ = serviceMsg + std::string("Login user : ");				
-				dataTransmission();
-				sendData_ = loginMsg + loginUser_;
-				dataTransmission();
+				server.sendData_ = serviceMsg + std::string("Login user : ");
+				server.dataTransmission();
+				server.sendData_ = loginMsg + loginUser_;
+				server.dataTransmission();
 				break;
 			}
 		}
@@ -272,18 +219,18 @@ bool Chat::loginUser()
 		}
 		catch (std::exception& warning)
 		{
-			sendData_ = serviceMsg + std::string(warning.what())
+			server.sendData_ = serviceMsg + std::string(warning.what())
 				+ std::string("login or password incorrect.\n");
-			std::cout << sendData_;
-			dataTransmission();	
-			sendData_ = "Type(e) for exit or any key for try again...\n";
-			dataTransmission();
-			dataRecieving();
+			std::cout << server.sendData_;
+			server.dataTransmission();
+			server.sendData_ = "Type(e) for exit or any key for try again...\n";
+			server.dataTransmission();
+			server.dataRecieving();
 						
-			if (message[0] == 'e')
+			if (server.message[0] == 'e')
 			{
-				sendData_ = exitChatMsg;
-				dataTransmission();
+				server.sendData_ = exitChatMsg;
+				server.dataTransmission();
 				return false;
 			}
 		}
@@ -308,69 +255,67 @@ void Chat::sendChatData()
 
 void Chat::sendUserList()
 {
-	sendData_ = beginUserListMsg;
-	dataTransmission();
+	server.sendData_ = beginUserListMsg;
+	server.dataTransmission();
 	
 	for (auto& element : chatUsers_)
 	{
-		sendData_ = element.getName();		
-		dataTransmission();
+		server.sendData_ = element.getName();
+		server.dataTransmission();
 
-		dataRecieving();
-		if (message == "#OK")
+		server.dataRecieving();
+		if (server.message == "#OK")
 		{
 			continue;
 		}
 	}
 
-	sendData_ = endUserListMsg;
-	dataTransmission();
+	server.sendData_ = endUserListMsg;
+	server.dataTransmission();
 }
 
 void Chat::sendMessages()
 {
-	sendData_ = beginChatListMsg;
-	dataTransmission();	
+	server.sendData_ = beginChatListMsg;
+	server.dataTransmission();
 	
 	for (auto& element : chatMessages_)
 	{
 		if (element.getFrom() == loginUser_
 			|| element.getTo() == "to_all"
-			|| element.getTo() == loginUser_
-			|| !element.getIsPrivateMessage())
+			|| element.getTo() == loginUser_)			
 		{
-			sendData_ = element.getFrom() + "|" + element.getTo()
+			server.sendData_ = element.getFrom() + "|" + element.getTo()
 				+ "|" + element.getMessage() + "|";
-			dataTransmission();
-			dataRecieving();
-			if (message == "#OK")
+			server.dataTransmission();
+			server.dataRecieving();
+			if (server.message == "#OK")
 			{
 				continue;
 			}
-		}		
-
+		}	
 	}	
 
-	sendData_ = endChatListMsg;
-	dataTransmission();		
+	server.sendData_ = endChatListMsg;
+	server.dataTransmission();
 }
 
 bool Chat::chatMenu()
 {
-	sendData_ = serviceMsg + std::string("User ")
+	server.sendData_ = serviceMsg + std::string("User ")
 		+ loginUser_ + std::string(" is login...\n");	
-	dataTransmission();
+	server.dataTransmission();
 
 	do
 	{
 		std::cout << "Main menu...\n";
-		sendData_ = std::string("Select action:\nn - New message\n")
+		server.sendData_ = std::string("Select action:\nn - New message\n")
 			+ std::string("v - View messages\nu - User list\n")
 			+ std::string("l - Logout(exit client)\nother - Stop chat server\n");		
-		dataTransmission();
-		dataRecieving();
+		server.dataTransmission();
+		server.dataRecieving();
 
-		switch (message[0])
+		switch (server.message[0])
 		{
 		case 'n':
 			newMessage();
@@ -382,14 +327,14 @@ bool Chat::chatMenu()
 			std::cout << "User is viewed userlist...\n";			
 			break;
 		case 'l':
-			sendData_ = exitChatMsg;
-			dataTransmission();			
-			close(connection);
+			server.sendData_ = exitChatMsg;
+			server.dataTransmission();
+			close(server.connection);
 			return 1;			
 		default:
-			sendData_ = exitChatMsg;
-			dataTransmission();
-			close(sockert_file_descriptor);			
+			server.sendData_ = exitChatMsg;
+			server.dataTransmission();
+			close(server.sockert_file_descriptor);
 			return 0;				
 		}
 	} while (true);
@@ -397,57 +342,50 @@ bool Chat::chatMenu()
 
 void Chat::newMessage()
 {
-//#if defined(_WIN32)
-//	system("CLS");
-//#else
-//	system("clear");
-//#endif	
-	
 	std::string to{ "to_all" };
 	bool isPrivateMessage{ false };	
 	std::cout << "New messages...\n";
-	sendData_ = std::string("Select message type: \nw - write to the user\n")
+	server.sendData_ = std::string("Select message type: \nw - write to the user\n")
 		+ std::string("p - write to the user privately\nother key - to all\n");
-	dataTransmission();	
-	dataRecieving();
+	server.dataTransmission();
+	server.dataRecieving();
 	
-	if (message[0] == 'p')
+	if (server.message[0] == 'p')
 	{
 		isPrivateMessage = true;
 	}
 
-	if (message[0] == 'p' || message[0] == 'w')
+	if (server.message[0] == 'p' || server.message[0] == 'w')
 	{
-		sendData_ = "Input user name: ";
-		dataTransmission();
-		dataRecieving();
+		server.sendData_ = "Input user name: ";
+		server.dataTransmission();
+		server.dataRecieving();
 
-		to = std::string(message);
+		to = std::string(server.message);
 
 		if (!checkUserName(to))
 		{
-			sendData_ = serviceMsg + std::string("User not found!\n");
-			dataTransmission(); 
+			server.sendData_ = serviceMsg + std::string("User not found!\n");
+			server.dataTransmission();
 			return;
 		}
 	}
-	
-	sendData_ = "Input massage text:\n";
-	dataTransmission();
-	dataRecieving();
 
-	std::string messageText = std::string(message);	
+	server.sendData_ = "Input massage text:\n";
+	server.dataTransmission();
+	server.dataRecieving();
+
+	std::string messageText = std::string(server.message);
 	if (messageText == "")
 	{
 		return;
 	}
 
-	chatMessages_.push_back(Message{ loginUser_, to, messageText,
-		isPrivateMessage });
+	chatMessages_.push_back(Message{ loginUser_, to, messageText });
 	std::string lineGeneration = loginUser_ + "|" + to + "|"
 		+ messageText + "|";
-	sendData_ = newMessageMsg + lineGeneration;
-	dataTransmission();
+	server.sendData_ = newMessageMsg + lineGeneration;
+	server.dataTransmission();
 
 	std::ofstream fileStream(messagesFile_, std::ios::app);	
 
@@ -493,8 +431,7 @@ bool Chat::checkUserName(std::string& name)
 
 void Chat::readDataFile(std::string& file)
 {
-	std::string readLine;
-	
+	std::string readLine;	
 	std::fstream fileStream(file, std::ios::in);
 
 	if (!fileStream)
@@ -538,28 +475,8 @@ void Chat::readMessagesFile(std::string& line)
 	std::string from = dataParsing(line);
 	std::string to = dataParsing(line);
 	std::string message = dataParsing(line);
-	bool isPrivateMessage = (dataParsing(line) != "0");
 
-	chatMessages_.push_back(Message{ from, to, message, isPrivateMessage });
-}
-
-void Chat::dataTransmission()
-{
-	bzero(message, MESSAGE_LENGTH);
-	std::copy(sendData_.begin(), sendData_.end(), message);
-	ssize_t bytes = write(connection, message, sizeof(message));
-	// Если передали >= 0  байт, значит пересылка прошла успешно
-	if (bytes >= 0)
-	{
-		std::cout << "Data successfully sent to the client.!" << message << "\n";
-	}
-}
-
-void Chat::dataRecieving()
-{
-	bzero(message, MESSAGE_LENGTH);
-	read(connection, message, sizeof(message));
-	std::cout << "The data is received from the client: " << message << "\n";
+	chatMessages_.push_back(Message{ from, to, message });
 }
 
 std::string Chat::dataParsing(std::string& data)

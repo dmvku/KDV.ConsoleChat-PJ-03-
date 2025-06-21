@@ -1,5 +1,4 @@
 STD = -std=c++17
-PFX = _class.o
 MAIN = TCP_Server_Linux
 LIB = ChatLIB.a
 
@@ -9,20 +8,23 @@ server : $(MAIN).o $(LIB)
 $(MAIN).o : $(MAIN).cpp
 	g++ $(STD) -o $@ $(MAIN).cpp -c
 
-$(LIB) : chat$(PFX) message$(PFX) user$(PFX) exception$(PFX) connection_config.o
-	ar rc lib$(LIB) chat$(PFX) message$(PFX) user$(PFX) exception$(PFX) connection_config.o
+$(LIB) : chat.o message.o user.o exception.o socket.o connection_config.o
+	ar rc lib$(LIB) chat.o message.o user.o exception.o socket.o connection_config.o
 
-chat$(PFX) : chat$(PFX:.o=.cpp)
-	g++ $(STD) -o $@ chat$(PFX:.o=.cpp) -c
+chat.o : chat.cpp
+	g++ $(STD) -o $@ chat.cpp -c
 
-message$(PFX) : message$(PFX:.o=.cpp)
-	g++ $(STD) -o $@ message$(PFX:.o=.cpp) -c
+message.o : message.cpp
+	g++ $(STD) -o $@ message.cpp -c
 
-user$(PFX) : user$(PFX:.o=.cpp)
-	g++ $(STD) -o $@ user$(PFX:.o=.cpp) -c
+user.o : user.cpp
+	g++ $(STD) -o $@ user.cpp -c
 
-exception$(PFX) : exception$(PFX:.o=.cpp)
-	g++ $(STD) -o $@ exception$(PFX:.o=.cpp) -c
+exception.o : exception.cpp
+	g++ $(STD) -o $@ exception.cpp -c
+
+socket.o : socket.cpp
+	g++ $(STD) -o $@ socket.cpp -c
 
 connection_config.o : connection_config.cpp
 	g++ $(STD) -o $@ connection_config.cpp -c

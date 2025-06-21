@@ -1,4 +1,4 @@
-#include "exception_class.h"
+#include "exception.h"
 
 Warning::Warning() {}
 

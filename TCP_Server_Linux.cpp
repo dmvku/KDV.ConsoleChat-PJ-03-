@@ -1,19 +1,15 @@
 ﻿#include <iostream>
 
 #include "connection_config.h"
-#include "chat_class.h"
+#include "chat.h"
+#include "socket.h"
 
 int main()
-{
-    int port{ readConnectionConfig() };
-
-    if (port)
-    {
-        Chat server(port);
-        server.runChat();
-    }
+{    
+    Chat chat;
+    chat.runChat();    
     
-    std::cout << "Server is stoping...\nExit chat...\n";
+    std::cout << "Server is stopped...\nExit chat...\n";
 
     return 0;
 }
