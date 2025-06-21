@@ -2,16 +2,10 @@
 
 #include <string>
 #include <vector>
-#include <unistd.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
 
-#include "connection_config.h"
-#include "user_class.h"
-#include "message_class.h"
-
-#define MESSAGE_LENGTH 1024 // Максимальный размер буфера для данных
+#include "socket.h"
+#include "user.h"
+#include "message.h"
 
 constexpr const char* serviceMsg = "#SERVC";
 constexpr const char* loginMsg = "#LOGIN";
@@ -29,32 +23,17 @@ public:
 	Chat();
 	~Chat();
 
-	void startClient();	
-
-private:	
-	ConnectionConfig serverConfig_;
-	int socket_file_descriptor, connection;
-	struct sockaddr_in serveraddress, client;
-	char message[MESSAGE_LENGTH];
+	void startChat();
 	
-	int serverPort_{};
-	std::string serverAddress_;
-
+private:
+	Socket client;
 	User currentUser_;
 	std::vector<User> chatUsers_;
 	std::vector<Message> chatMessages_;	
-	std::string sendData_;
 	
-	void configuringTheServerConnection();	
-	void createSocket();
-	void connectionToTheServer();
-	void interactionWithTheServer();
 	void createMessage(std::string& newMessage);
 	void viewChat();
 	void viewUsers();
-	void dataTransmission();
-	void dataRecieving();
 	void recivingChatData(char list);
 	std::string dataParsing(std::string& data);	
 };
-

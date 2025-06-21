@@ -110,7 +110,7 @@ void ConnectionConfig::checkServerIPAddress()
 
 	if (!parsingIPAddress())
 	{
-		addressIP_ = "0";
+		addressIP_ == "0";
 	}
 
 	return;
@@ -120,7 +120,8 @@ bool ConnectionConfig::parsingIPAddress()
 {
 	std::string separator{ "." };
 	int numberOfOctets{ 4 };
-	int octet{};	
+	int octet{};
+	// int numberOfOctets{ 4 };
 	std::string address = addressIP_;
 
 	for (int octetsCount{ 1 }; octetsCount <= numberOfOctets; octetsCount++)

@@ -14,5 +14,5 @@ public:
 private:
 	std::string from_;
 	std::string to_;
-	std::string message_;
+	std::string message_;	
 };

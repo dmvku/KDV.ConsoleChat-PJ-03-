@@ -1,4 +1,4 @@
-#include "chat_class.h"
+#include "chat.h"
 #include "sha1.h"
 
 #include <iostream>
@@ -15,86 +15,25 @@ Chat::~Chat()
 
 }
 
-void Chat::startClient()
-{        
-    configuringTheServerConnection();
-    if (serverAddress_ == "0" || serverPort_ == 0)
+void Chat::startChat()
+{
+    if (!client.startClient())
     {
-        std::cout << "Exit chat...\n";
         return;
     }
-    createSocket();    
-    interactionWithTheServer();
-}
 
-void Chat::configuringTheServerConnection()
-{
-    serverAddress_ = serverConfig_.getAddressIP();
-    serverPort_ = serverConfig_.getPort();
-}
-
-void Chat::createSocket()
-{
-    // Создадим сокет
-    socket_file_descriptor = socket(AF_INET, SOCK_STREAM, 0);
-    if (socket_file_descriptor == -1)
-    {
-        std::cout << "Creation of Socket failed!\n";
-        exit(1);
-    }
-    std::cout << "Socket is creation...\n";    
-
-    // Установим адрес сервера
-    serveraddress.sin_addr.s_addr = inet_addr(serverAddress_.c_str());
-    // Зададим номер порта
-    serveraddress.sin_port = htons(serverPort_);
-    // Используем IPv4
-    serveraddress.sin_family = AF_INET;
-    std::cout << "Apply server parameters...\n";
-}
-
-void Chat::connectionToTheServer()
-{    
-    // Установим соединение с сервером
-    int numberOfAttempts{ 3 };    
-    for (int attempts = 1; attempts <= numberOfAttempts; attempts++)
-    {
-        std::cout << "Connecting to the server. Attempts - " << attempts << "\n";
-        connection = connect(socket_file_descriptor,
-            (struct sockaddr*)&serveraddress, sizeof(serveraddress));
-        if (connection == -1)
-        {            
-            if (attempts == numberOfAttempts)
-            {
-                std::cout << "Connection with the server failed!\n";
-                exit(1);
-            }
-            std::cout << "Not connection to the server!\nPause 10 sec.\n";
-            sleep(10);
-        }
-        else
-        {
-            break;
-        }
-    }
-}
-
-void Chat::interactionWithTheServer()
-{
     std::cin.clear();
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     while (1)
     {
-        connectionToTheServer();
-
         std::cout << "The connection to the server is established\n";
         std::string receivedData;        
 
         while (1)
         {
-            dataRecieving();
-            receivedData = std::string(message);
+            client.dataRecieving();
+            receivedData = std::string(client.message);
             std::string keyCommand = dataParsing(receivedData);
 
             if (keyCommand == serviceMsg)
@@ -112,9 +51,9 @@ void Chat::interactionWithTheServer()
             {
                 std::cout << receivedData;
                 std::cin.clear();
-                std::getline(std::cin, sendData_);               
-                sendData_ = passwordHashing(sendData_);                
-                dataTransmission();
+                std::getline(std::cin, client.sendData_);
+                client.sendData_ = passwordHashing(client.sendData_);
+                client.dataTransmission();
                 continue;
             }           
             else if (keyCommand == newMessageMsg)
@@ -135,7 +74,7 @@ void Chat::interactionWithTheServer()
             else if (keyCommand == exitChatMsg)
             {
                 std::cout << "Exit chat...\n";
-                close(socket_file_descriptor);
+                close(client.socket_file_descriptor);
                 return;
             }            
             else
@@ -144,20 +83,20 @@ void Chat::interactionWithTheServer()
             }
             
             std::cin.clear();
-            std::getline(std::cin, sendData_);
+            std::getline(std::cin, client.sendData_);
 
-            if (sendData_ == "v")
+            if (client.sendData_ == "v")
             {
                 std::cout << "        CHAT:\n";
                 viewChat();
             }
-            else if (sendData_ == "u")
+            else if (client.sendData_ == "u")
             {
                 std::cout << "        USER LIST:\n";
                 viewUsers();
             }            
                     
-            dataTransmission();
+            client.dataTransmission();
         }
     }    
 }
@@ -173,7 +112,8 @@ void Chat::viewChat()
     int maxMessagesOnTheScreen{ 15 };
     int countMessagesOnTheScreen{};
 
-    std::string addMeFrom{};    
+    std::string addMeFrom{};
+    //std::string addFrom{};
     std::string addRecipient{};
 
     for (auto& element : chatMessages_)
@@ -228,28 +168,9 @@ void Chat::viewUsers()
     std::cout << "\n";
 }
 
-void Chat::dataTransmission()
-{
-    bzero(message, MESSAGE_LENGTH);
-    std::copy(sendData_.begin(), sendData_.end(), message);
-    ssize_t bytes = write(socket_file_descriptor, message, sizeof(message));
-    // Если передали >= 0  байт, значит пересылка прошла успешно
-    /*if (bytes >= 0) {
-        std::cout << "Data successfully sent to the server.!\n";
-    }*/
-}
-
-void Chat::dataRecieving()
-{
-    bzero(message, MESSAGE_LENGTH);
-    read(socket_file_descriptor, message, MESSAGE_LENGTH);
-    // std::cout << "The data is received from the server: "
-    //    << message << "\n";
-}
-
 void Chat::recivingChatData(char list)
 {
-    std::string recievingData;   
+    std::string recievingData;    
     std::string endList;
 
     if (list == 'u')
@@ -263,8 +184,8 @@ void Chat::recivingChatData(char list)
 
     do
     {
-        dataRecieving();
-        recievingData = std::string(message);        
+        client.dataRecieving();
+        recievingData = std::string(client.message);        
         if (recievingData != endList)
         {
             switch (list)
@@ -275,8 +196,8 @@ void Chat::recivingChatData(char list)
             case 'c':
                 createMessage(recievingData);
             }
-            sendData_ = "#OK";
-            dataTransmission();
+            client.sendData_ = "#OK";
+            client.dataTransmission();
         }
         else
         {

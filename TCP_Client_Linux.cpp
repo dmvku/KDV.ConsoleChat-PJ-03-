@@ -1,9 +1,9 @@
-﻿#include "chat_class.h"
+﻿#include "chat.h"
 
 int main() {
     
     Chat chat;  
-    chat.startClient();
+    chat.startChat();
 
     return 0;
 }

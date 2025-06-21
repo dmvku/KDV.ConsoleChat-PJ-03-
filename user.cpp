@@ -1,4 +1,4 @@
-#include "user_class.h"
+#include "user.h"
 
 User::User(const std::string& name)	: name_{ name }
 {

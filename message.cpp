@@ -1,4 +1,4 @@
-#include "message_class.h"
+#include "message.h"
 
 Message::Message(const std::string& from, const std::string& to, const std::string& message)
 	: from_{ from }, to_{ to }, message_{ message }

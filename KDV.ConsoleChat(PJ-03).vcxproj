@@ -128,19 +128,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="chat_class.cpp" />
+    <ClCompile Include="chat.cpp" />
     <ClCompile Include="connection_config.cpp" />
-    <ClCompile Include="message_class.cpp" />
+    <ClCompile Include="message.cpp" />
     <ClCompile Include="sha1.cpp" />
+    <ClCompile Include="socket.cpp" />
     <ClCompile Include="TCP_Client_Linux.cpp" />
-    <ClCompile Include="user_class.cpp" />
+    <ClCompile Include="user.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="chat_class.h" />
+    <ClInclude Include="chat.h" />
     <ClInclude Include="connection_config.h" />
-    <ClInclude Include="message_class.h" />
+    <ClInclude Include="message.h" />
     <ClInclude Include="sha1.h" />
-    <ClInclude Include="user_class.h" />
+    <ClInclude Include="socket.h" />
+    <ClInclude Include="user.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="makefile" />

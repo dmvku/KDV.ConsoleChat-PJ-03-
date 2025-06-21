@@ -8,10 +8,9 @@ public:
 	User(const std::string& name);
 	~User();
 		
-	const std::string& getName() const;			
+	const std::string& getName() const;		
 	void setName(std::string& name);	
 
 private:	
-	std::string name_;
-	int UserID{};
+	std::string name_;	
 };
