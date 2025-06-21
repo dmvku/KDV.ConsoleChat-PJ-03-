@@ -74,7 +74,7 @@ void Socket::dataTransmission()
 	// Если передали >= 0  байт, значит пересылка прошла успешно
 	if (bytes >= 0)
 	{
-		std::cout << "Data successfully sent to the client.!" << message << "\n";
+		std::cout << "Data successfully sent to the client: " << message << "\n";
 	}	
 }
 

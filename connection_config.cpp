@@ -18,7 +18,8 @@ int readConnectionConfig()
 	if (!fileStream)
 	{
 		std::cout << "Server parameter file not found...\n";
-		std::fstream fileStream(connectionConfigFile, std::ios::in | std::ios::out | std::ios::app);
+		std::fstream fileStream(connectionConfigFile,
+			std::ios::in | std::ios::out | std::ios::app);
 		std::filesystem::permissions(connectionConfigFile,
 			std::filesystem::perms::group_all | std::filesystem::perms::others_all,
 			std::filesystem::perm_options::remove);
@@ -36,18 +37,19 @@ int readConnectionConfig()
 		{
 			dataLine.erase(0, separatorPoint + 1);
 			port = std::stoi(dataLine.substr(0));
-			std::cout << "Find server parameters: Port:" << port << "\n";
-			std::cout << "Do you want to change the port (y/n)? ";
-			char action{ '\0' };
-			std::cin >> action;
-			if (action == 'y')
-			{
-				port = setServerParameters();
-			}
+			std::cout << "Find server parameters: Port:" << port << "\n";			
 		}
 	}
 	
 	fileStream.close();
+
+	std::cout << "Do you want to change the port (y/n)? ";
+	char action{ '\0' };
+	std::cin >> action;
+	if (action == 'y')
+	{
+		port = setServerParameters();
+	}
 
 	return checkServerParameters(port);	
 }
@@ -70,15 +72,18 @@ int checkServerParameters(int port)
 		{
 			port = PORT;
 			std::cout << "The default port value is set: " << port << "\n";
-		}
-		std::fstream fileStream(connectionConfigFile, std::ios::app | std::ios::trunc);
-
-		if (fileStream.is_open())
-		{
-			fileStream << "ServerPort:" << std::to_string(port);
-		}
-		fileStream.close();		
+		}		
 	}
+
+	std::fstream fileStream(connectionConfigFile,
+		std::ios::out | std::ios::trunc);
+
+	if (fileStream.is_open())
+	{
+		fileStream << "ServerPort:" << std::to_string(port);
+	}
+	fileStream.close();
+
 	return port;
 }
 
