@@ -34,18 +34,23 @@ void Chat::startChat()
         receivedData = std::string(client.message);
         std::string keyCommand = dataParsing(receivedData);
 
-        if (keyCommand == serviceMsg)
+        if (keyCommand == serverCommand::helloMsg)
+        {
+            std::system("clear");
+            std::cout << receivedData;            
+        }
+        else if (keyCommand == serverCommand::serviceMsg)
         {
             std::cout << receivedData;
             continue;
         }
-        else if (keyCommand == loginMsg)
+        else if (keyCommand == serverCommand::loginMsg)
         {
             currentUser_.setName(receivedData);
             std::cout << currentUser_.getName() << "\n";
             continue;
         }
-        else if (keyCommand == passwordMsg)
+        else if (keyCommand == serverCommand::passwordMsg)
         {
             std::cout << receivedData;            
             std::getline(std::cin, client.sendData_);
@@ -53,22 +58,22 @@ void Chat::startChat()
             client.dataTransmission();            
             continue;
         }
-        else if (keyCommand == newMessageMsg)
+        else if (keyCommand == serverCommand::newMessageMsg)
         {
             createMessage(receivedData);
             continue;
         }
-        else if (keyCommand == beginUserListMsg)
+        else if (keyCommand == serverCommand::beginUserListMsg)
         {
             recivingChatData('u');
             continue;
         }
-        else if (keyCommand == beginChatListMsg)
+        else if (keyCommand == serverCommand::beginChatListMsg)
         {
             recivingChatData('c');
             continue;
         }
-        else if (keyCommand == exitChatMsg)
+        else if (keyCommand == serverCommand::exitChatMsg)
         {
             std::cout << "Exit chat...\n";
             close(client.socket_file_descriptor);
@@ -83,11 +88,13 @@ void Chat::startChat()
         
         if (client.sendData_ == "v")
         {
+            std::system("clear");
             std::cout << "        CHAT:\n";
             viewChat();
         }
         else if (client.sendData_ == "u")
         {
+            std::system("clear");
             std::cout << "        USER LIST:\n";
             viewUsers();
         }
@@ -104,7 +111,7 @@ void Chat::createMessage(std::string& newMessage)
 
 void Chat::viewChat()
 {    
-    int maxMessagesOnTheScreen{ 15 };
+    int maxMessagesOnTheScreen{ 25 };
     int countMessagesOnTheScreen{};
 
     std::string addMeFrom{};
@@ -116,7 +123,8 @@ void Chat::viewChat()
         std::string from{ element.getFrom() };
         std::string to{ element.getTo() };
         std::string message{ element.getMessage() };
-        addMeFrom = from == currentUser_.getName() ? "\033[0m(me)" : "";
+        addMeFrom = from == currentUser_.getName()
+            ? textColor::resetColor + "(me)" : "";
 
         if (to == "to_all")
         {
@@ -124,15 +132,17 @@ void Chat::viewChat()
         }
         else if (to == currentUser_.getName())
         {
-            addRecipient = "\033[0m to myself";
+            addRecipient = textColor::resetColor + " to myself";
         }
         else
         {
-            addRecipient = "\033[0m to \033[1;4;36m" + to;
+            addRecipient = textColor::resetColor + " to "
+                + textColor::green + to;
         }
 
-        std::cout << "\033[1;4;33m" << from << addMeFrom << addRecipient
-            << "\033[0m: " << message << "\n";
+        std::cout << textColor::cyan << from << addMeFrom << addRecipient
+            << textColor::resetColor << ": " << textColor::yellow 
+            << message << textColor::resetColor << "\n";
 
         countMessagesOnTheScreen++;
         
@@ -145,9 +155,6 @@ void Chat::viewChat()
             {
                 return;
             }
-
-            system("clear");
-            std::cout << "           CHAT:\n";
             countMessagesOnTheScreen = 0;
         }        
     }  
@@ -158,9 +165,9 @@ void Chat::viewUsers()
 {
     for (auto& element : chatUsers_)
     {
-        std::cout << "\033[1;4;33m" << element.getName() << "\033[0m\n";
-    }
-    std::cout << "\n";
+        std::cout << textColor::yellow << element.getName()
+            << textColor::resetColor << "\n";
+    }    
 }
 
 void Chat::recivingChatData(char list)
@@ -170,11 +177,11 @@ void Chat::recivingChatData(char list)
 
     if (list == 'u')
     {
-        endList = endUserListMsg;
+        endList = serverCommand::endUserListMsg;
     }
     else
     {
-        endList = endChatListMsg;
+        endList = serverCommand::endChatListMsg;
     }
 
     do
@@ -191,7 +198,7 @@ void Chat::recivingChatData(char list)
             case 'c':
                 createMessage(recievingData);
             }
-            client.sendData_ = "#OK";
+            client.sendData_ = serverCommand::confirmationMsg;
             client.dataTransmission();
         }
         else

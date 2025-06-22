@@ -7,15 +7,33 @@
 #include "user.h"
 #include "message.h"
 
-constexpr const char* serviceMsg = "#SERVC";
-constexpr const char* loginMsg = "#LOGIN";
-constexpr const char* passwordMsg = "#PASSW";
-constexpr const char* newMessageMsg = "#NEWMS";
-constexpr const char* beginUserListMsg = "#BULST";
-constexpr const char* endUserListMsg = "#EULST";
-constexpr const char* beginChatListMsg = "#BCLST";
-constexpr const char* endChatListMsg = "#ECLST";
-constexpr const char* exitChatMsg = "#EXITC";
+namespace serverCommand
+{
+	const std::string helloMsg = "#HELLO";
+	const std::string serviceMsg = "#SERVC";
+	const std::string loginMsg = "#LOGIN";
+	const std::string passwordMsg = "#PASSW";
+	const std::string newMessageMsg = "#NEWMS";
+	const std::string beginUserListMsg = "#BULST";
+	const std::string endUserListMsg = "#EULST";
+	const std::string beginChatListMsg = "#BCLST";
+	const std::string endChatListMsg = "#ECLST";
+	const std::string exitChatMsg = "#EXITC";
+	const std::string confirmationMsg = "#OK";
+}
+
+namespace textColor
+{
+	const std::string resetColor = "\033[0m";
+	const std::string black = "\033[30m";
+	const std::string red = "\033[31m";
+	const std::string green = "\033[32m";
+	const std::string yellow = "\033[33m";
+	const std::string blue = "\033[34m";
+	const std::string magenta = "\033[35m";
+	const std::string cyan = "\033[36m";
+	const std::string white = "\033[37m";
+}
 
 class Chat
 {
