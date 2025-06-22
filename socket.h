@@ -29,6 +29,7 @@ public:
 	std::string sendData_;
 	
 	void startServer();
+	void stopServer();
 	void createConnection();
 	void dataTransmission();
 	void dataRecieving();	

@@ -59,11 +59,16 @@ void Socket::createConnection()
 		(struct sockaddr*)&client, &length);
 	if (connection == -1)
 	{
-		std::cout << "Server is unable to accept the data from client.!"
-			<< std::endl;
+		std::cout << "Server is unable to accept the data from client.! \n";
 		exit(1);
 	}
 	std::cout << "The connection is established...\n";
+}
+
+void Socket::stopServer()
+{
+	close(connection);
+	close(sockert_file_descriptor);
 }
 
 void Socket::dataTransmission()
@@ -74,7 +79,8 @@ void Socket::dataTransmission()
 	// Если передали >= 0  байт, значит пересылка прошла успешно
 	if (bytes >= 0)
 	{
-		std::cout << "Data successfully sent to the client: " << message << "\n";
+		std::cout << "Data successfully sent to the client: \033[34m\n"
+			<< message << "\033[0m\n";
 	}	
 }
 
@@ -82,7 +88,8 @@ void Socket::dataRecieving()
 {
 	bzero(message, MESSAGE_LENGTH);
 	read(connection, message, sizeof(message));
-	std::cout << "The data is received from the client: " << message << "\n";
+	std::cout << "The data is received from the client: \033[32m\n"
+		<< message << "\033[0m\n";
 }
 
 const int Socket::getPort() const

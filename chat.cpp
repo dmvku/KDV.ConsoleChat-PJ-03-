@@ -38,7 +38,7 @@ void Chat::runChat()
 		if (!userAutorization())
 		{
 			std::cout << "End chat...\n";
-			close(server.sockert_file_descriptor);
+			server.stopServer();			
 			return;
 		}
 
@@ -47,7 +47,7 @@ void Chat::runChat()
 		if (!chatMenu())
 		{
 			std::cout << "End chat...\n";
-			close(server.sockert_file_descriptor);
+			server.stopServer();			
 			return;
 		}
 		else
@@ -61,7 +61,10 @@ void Chat::runChat()
 bool Chat::userAutorization()
 {
 	std::cout << "Register...\n";
-	server.sendData_ = "Hello! Please login(l), register (r) or exit(other key)...\n";
+	server.sendData_ = serverCommand::helloMsg
+		+ textColor::green
+		+ "Hello! Please login(l), register (r) or exit(other key)...\n"
+		+ textColor::resetColor;
 	server.dataTransmission();
 	server.dataRecieving();
 		
@@ -70,8 +73,10 @@ bool Chat::userAutorization()
 	case 'l':
 		if (chatUsers_.empty())
 		{
-			server.sendData_ = serviceMsg
-				+ std::string("Users not found. Please register...\n");
+			server.sendData_ = serverCommand::serviceMsg
+				+ textColor::red
+				+ std::string("Users not found. Please register...\n")
+				+ textColor::resetColor;
 			server.dataTransmission();
 			return registerUser();
 		}
@@ -82,7 +87,7 @@ bool Chat::userAutorization()
 	case 'r':
 		return registerUser();		
 	default:
-		server.sendData_ = exitChatMsg;
+		server.sendData_ = serverCommand::exitChatMsg;
 		server.dataTransmission();
 		return 0;
 	}
@@ -99,7 +104,9 @@ bool Chat::registerUser()
 	do
 	{
 		valueIsBusy = false;
-		server.sendData_ = "Login: \0";
+		server.sendData_ = textColor::yellow
+			+ "Login: \0"
+			+ textColor::resetColor;
 		server.dataTransmission();
 		server.dataRecieving();
 		login = std::string(server.message);
@@ -113,8 +120,11 @@ bool Chat::registerUser()
 		}
 		catch (std::exception& warning)
 		{			
-			server.sendData_ = serviceMsg + std::string(warning.what())
-				+ std::string("login is busy. Ñhoose a different login...\n");
+			server.sendData_ = serverCommand::serviceMsg
+				+ textColor::red
+				+ std::string(warning.what())
+				+ std::string("login is busy. Ñhoose a different login...\n")
+				+ textColor::resetColor;
 			std::cout << server.sendData_;
 			server.dataTransmission();
 			valueIsBusy = true;
@@ -122,7 +132,10 @@ bool Chat::registerUser()
 		}	
 	} while (valueIsBusy);
 	
-	server.sendData_ = passwordMsg + std::string("Password: ");
+	server.sendData_ = serverCommand::passwordMsg
+		+ textColor::yellow
+		+ std::string("Password: ")
+		+ textColor::resetColor;
 	server.dataTransmission();
 	server.dataRecieving();
 	passwordHash = std::string(server.message);
@@ -130,7 +143,9 @@ bool Chat::registerUser()
 	do
 	{
 		valueIsBusy = false;
-		server.sendData_ = "Name: ";
+		server.sendData_ = textColor::yellow
+			+ "Name: "
+			+ textColor::resetColor;
 		server.dataTransmission();
 		server.dataRecieving();
 		name = std::string(server.message);
@@ -143,8 +158,11 @@ bool Chat::registerUser()
 		}
 		catch (std::exception& warning)
 		{
-			server.sendData_ = serviceMsg + std::string(warning.what())
-				+ std::string("name is busy. Ñhoose a different name...\n");
+			server.sendData_ = serverCommand::serviceMsg
+				+ textColor::red
+				+ std::string(warning.what())
+				+ std::string("name is busy. Ñhoose a different name...\n")
+				+ textColor::resetColor;
 			std::cout << server.sendData_;
 			server.dataTransmission();
 			valueIsBusy = true;
@@ -171,7 +189,10 @@ bool Chat::registerUser()
 	fileStream.close();
 
 	loginUser_ = login;
-	server.sendData_ = serviceMsg + std::string("You are is registred and login...\n");
+	server.sendData_ = serverCommand::serviceMsg
+		+ textColor::green
+		+ std::string("You are is registred and login...\n")
+		+ textColor::resetColor;
 	server.dataTransmission();
 		
 	return true;
@@ -186,12 +207,17 @@ bool Chat::loginUser()
 	bool correctUser = false;
 	do
 	{
-		server.sendData_ = "Login: ";
+		server.sendData_ = textColor::yellow
+			+ "Login: "
+			+ textColor::resetColor;
 		server.dataTransmission();
 		server.dataRecieving();
 		login = std::string(server.message);
 
-		server.sendData_ = passwordMsg + std::string("Password: ");
+		server.sendData_ = serverCommand::passwordMsg
+			+ textColor::yellow
+			+ std::string("Password: ")
+			+ textColor::resetColor;
 		server.dataTransmission();
 		server.dataRecieving();
 		passwordHash = std::string(server.message);
@@ -202,10 +228,8 @@ bool Chat::loginUser()
 				&& element.getPasswordHash() == passwordHash)
 			{
 				correctUser = true;
-				loginUser_ = login;
-				server.sendData_ = serviceMsg + std::string("Login user : ");
-				server.dataTransmission();
-				server.sendData_ = loginMsg + loginUser_;
+				loginUser_ = login;				
+				server.sendData_ = serverCommand::loginMsg + loginUser_;
 				server.dataTransmission();
 				break;
 			}
@@ -219,17 +243,17 @@ bool Chat::loginUser()
 		}
 		catch (std::exception& warning)
 		{
-			server.sendData_ = serviceMsg + std::string(warning.what())
-				+ std::string("login or password incorrect.\n");
-			std::cout << server.sendData_;
-			server.dataTransmission();
-			server.sendData_ = "Type(e) for exit or any key for try again...\n";
+			server.sendData_ = textColor::red
+				+ std::string(warning.what())
+				+ "login or password incorrect. "
+				+ "Type(e) for exit or any key for try again...\n"
+				+ textColor::resetColor;
 			server.dataTransmission();
 			server.dataRecieving();
 						
 			if (server.message[0] == 'e')
 			{
-				server.sendData_ = exitChatMsg;
+				server.sendData_ = serverCommand::exitChatMsg;
 				server.dataTransmission();
 				return false;
 			}
@@ -255,7 +279,7 @@ void Chat::sendChatData()
 
 void Chat::sendUserList()
 {
-	server.sendData_ = beginUserListMsg;
+	server.sendData_ = serverCommand::beginUserListMsg;
 	server.dataTransmission();
 	
 	for (auto& element : chatUsers_)
@@ -264,19 +288,19 @@ void Chat::sendUserList()
 		server.dataTransmission();
 
 		server.dataRecieving();
-		if (server.message == "#OK")
+		if (server.message == serverCommand::confirmationMsg)
 		{
 			continue;
 		}
 	}
 
-	server.sendData_ = endUserListMsg;
+	server.sendData_ = serverCommand::endUserListMsg;
 	server.dataTransmission();
 }
 
 void Chat::sendMessages()
 {
-	server.sendData_ = beginChatListMsg;
+	server.sendData_ = serverCommand::beginChatListMsg;
 	server.dataTransmission();
 	
 	for (auto& element : chatMessages_)
@@ -289,29 +313,34 @@ void Chat::sendMessages()
 				+ "|" + element.getMessage() + "|";
 			server.dataTransmission();
 			server.dataRecieving();
-			if (server.message == "#OK")
+			if (server.message == serverCommand::confirmationMsg)
 			{
 				continue;
 			}
 		}	
 	}	
 
-	server.sendData_ = endChatListMsg;
+	server.sendData_ = serverCommand::endChatListMsg;
 	server.dataTransmission();
 }
 
 bool Chat::chatMenu()
 {
-	server.sendData_ = serviceMsg + std::string("User ")
-		+ loginUser_ + std::string(" is login...\n");	
+	server.sendData_ = serverCommand::serviceMsg
+		+ textColor::green
+		+ std::string("\nUser ")
+		+ loginUser_
+		+ std::string(" is login...\n")
+		+ textColor::resetColor;
 	server.dataTransmission();
 
 	do
 	{
 		std::cout << "Main menu...\n";
-		server.sendData_ = std::string("Select action:\nn - New message\n")
-			+ std::string("v - View messages\nu - User list\n")
-			+ std::string("l - Logout(exit client)\nother - Stop chat server\n");		
+		server.sendData_ = textColor::cyan
+			+ "\nSelect action:\nn - New message\nv - View messages\nu - User "
+			+ "list\nl - Logout(exit client)\nother - Stop chat server\n"
+			+ textColor::resetColor;
 		server.dataTransmission();
 		server.dataRecieving();
 
@@ -327,14 +356,14 @@ bool Chat::chatMenu()
 			std::cout << "User is viewed userlist...\n";			
 			break;
 		case 'l':
-			server.sendData_ = exitChatMsg;
+			server.sendData_ = serverCommand::exitChatMsg;
 			server.dataTransmission();
 			close(server.connection);
 			return 1;			
 		default:
-			server.sendData_ = exitChatMsg;
+			server.sendData_ = serverCommand::exitChatMsg;
 			server.dataTransmission();
-			close(server.sockert_file_descriptor);
+			server.stopServer();
 			return 0;				
 		}
 	} while (true);
@@ -342,22 +371,19 @@ bool Chat::chatMenu()
 
 void Chat::newMessage()
 {
-	std::string to{ "to_all" };
-	bool isPrivateMessage{ false };	
-	std::cout << "New messages...\n";
-	server.sendData_ = std::string("Select message type: \nw - write to the user\n")
-		+ std::string("p - write to the user privately\nother key - to all\n");
+	std::string to{ "to_all" };	
+	std::cout << "\nNew messages...\n";
+	server.sendData_ = textColor::cyan
+		+ "Select message type: \nw - write to the user\nother key - to all\n"
+		+ textColor::resetColor;
 	server.dataTransmission();
-	server.dataRecieving();
+	server.dataRecieving();	
 	
-	if (server.message[0] == 'p')
+	if (server.message[0] == 'w')
 	{
-		isPrivateMessage = true;
-	}
-
-	if (server.message[0] == 'p' || server.message[0] == 'w')
-	{
-		server.sendData_ = "Input user name: ";
+		server.sendData_ = textColor::yellow
+			+ "Input user name: "
+			+ textColor::resetColor;
 		server.dataTransmission();
 		server.dataRecieving();
 
@@ -365,26 +391,36 @@ void Chat::newMessage()
 
 		if (!checkUserName(to))
 		{
-			server.sendData_ = serviceMsg + std::string("User not found!\n");
+			server.sendData_ = serverCommand::serviceMsg
+				+ textColor::red
+				+ std::string("User not found!\n")
+				+ textColor::resetColor;
 			server.dataTransmission();
 			return;
 		}
 	}
 
-	server.sendData_ = "Input massage text:\n";
+	server.sendData_ = textColor::yellow
+		+ "Input massage text:\n"
+		+ textColor::resetColor;
 	server.dataTransmission();
 	server.dataRecieving();
 
 	std::string messageText = std::string(server.message);
-	if (messageText == "")
+	if (messageText.empty())
 	{
+		server.sendData_ = serverCommand::serviceMsg
+			+ textColor::red
+		    + "The message is empty...\n"
+			+ textColor::resetColor;
+		server.dataTransmission();
 		return;
 	}
 
 	chatMessages_.push_back(Message{ loginUser_, to, messageText });
 	std::string lineGeneration = loginUser_ + "|" + to + "|"
 		+ messageText + "|";
-	server.sendData_ = newMessageMsg + lineGeneration;
+	server.sendData_ = serverCommand::newMessageMsg + lineGeneration;
 	server.dataTransmission();
 
 	std::ofstream fileStream(messagesFile_, std::ios::app);	
@@ -398,7 +434,7 @@ void Chat::newMessage()
 	}
 	else	
 	{
-		lineGeneration += (std::to_string(isPrivateMessage) + "|\n");
+		lineGeneration += "\n";
 		fileStream << lineGeneration;
 	}
 
