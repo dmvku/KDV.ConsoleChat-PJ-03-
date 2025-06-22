@@ -78,16 +78,16 @@ void Socket::dataTransmission()
 
     ssize_t bytes = write(socket_file_descriptor, message, sizeof(message));
     // Если передали >= 0  байт, значит пересылка прошла успешно
-    if (bytes >= 0)
+    /*if (bytes >= 0)
     {
         std::cout << "Data successfully sent to the server.!\n";
-    }
+    }*/
 }
 
 void Socket::dataRecieving()
 {
     bzero(message, MESSAGE_LENGTH);
     read(socket_file_descriptor, message, MESSAGE_LENGTH);
-    std::cout << "The data is received from the server: "
-        << message << "\n";
+    // std::cout << "The data is received from the server: "
+    //    << message << "\n";
 }

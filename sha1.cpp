@@ -1,5 +1,8 @@
 ﻿#include "sha1.h"
 #include <string.h>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 
 uint cycle_shift_left(uint val, int bit_count) {
     return (val << bit_count | val >> (32 - bit_count));
@@ -12,9 +15,11 @@ uint bring_to_human_view(uint val) {
         ((val & 0xFF000000) >> 24);
 }
 
-uint* sha1(std::string _pass) {
+//uint* sha1(std::string _pass)
+std::string sha1(std::string _pass)
+{    
     const char* pass = _pass.c_str();
-    uint msize_bytes = sizeof(pass);
+    uint msize_bytes = _pass.size();    
 
     //èíèöèàëèçàöèÿ
     uint A = H[0];
@@ -130,13 +135,10 @@ uint* sha1(std::string _pass) {
 
     // ÷èñòèì çà ñîáîé
     delete[] newMessage;
-    return digest;
-}
-
-std::string passwordHashing(std::string pass)
-{
-    uint* digest{ sha1(pass) };
-    std::string passwordHash = std::to_string(*digest);
-    delete digest;
-    return passwordHash;
+    
+    std::ostringstream hash;
+    for (int i = 0; i < SHA1HASHLENGTHUINTS; i++) {
+        hash << std::hex << std::setw(8) << std::setfill('0') << digest[i];
+    }    
+    return hash.str();
 }

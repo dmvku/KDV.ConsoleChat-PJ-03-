@@ -22,82 +22,77 @@ void Chat::startChat()
         return;
     }
 
+    std::cout << "The connection to the server is established\n";
+    std::string receivedData;
+
     std::cin.clear();
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     while (1)
     {
-        std::cout << "The connection to the server is established\n";
-        std::string receivedData;        
+        client.dataRecieving();
+        receivedData = std::string(client.message);
+        std::string keyCommand = dataParsing(receivedData);
 
-        while (1)
+        if (keyCommand == serviceMsg)
         {
-            client.dataRecieving();
-            receivedData = std::string(client.message);
-            std::string keyCommand = dataParsing(receivedData);
-
-            if (keyCommand == serviceMsg)
-            {
-                std::cout << receivedData;
-                continue;
-            }
-            else if (keyCommand == loginMsg)
-            {
-                currentUser_.setName(receivedData);               
-                std::cout << currentUser_.getName() << "\n";                
-                continue;
-            }
-            else if (keyCommand == passwordMsg)
-            {
-                std::cout << receivedData;
-                std::cin.clear();
-                std::getline(std::cin, client.sendData_);
-                client.sendData_ = passwordHashing(client.sendData_);
-                client.dataTransmission();
-                continue;
-            }           
-            else if (keyCommand == newMessageMsg)
-            {                
-                createMessage(receivedData);
-                continue;
-            }
-            else if (keyCommand == beginUserListMsg)
-            {
-                recivingChatData('u');
-                continue;
-            }
-            else if (keyCommand == beginChatListMsg)
-            {
-                recivingChatData('c');
-                continue;
-            }
-            else if (keyCommand == exitChatMsg)
-            {
-                std::cout << "Exit chat...\n";
-                close(client.socket_file_descriptor);
-                return;
-            }            
-            else
-            {
-                std::cout << receivedData;
-            }
-            
-            std::cin.clear();
-            std::getline(std::cin, client.sendData_);
-
-            if (client.sendData_ == "v")
-            {
-                std::cout << "        CHAT:\n";
-                viewChat();
-            }
-            else if (client.sendData_ == "u")
-            {
-                std::cout << "        USER LIST:\n";
-                viewUsers();
-            }            
-                    
-            client.dataTransmission();
+            std::cout << receivedData;
+            continue;
         }
+        else if (keyCommand == loginMsg)
+        {
+            currentUser_.setName(receivedData);
+            std::cout << currentUser_.getName() << "\n";
+            continue;
+        }
+        else if (keyCommand == passwordMsg)
+        {
+            std::cout << receivedData;            
+            std::getline(std::cin, client.sendData_);
+            client.sendData_ = sha1(client.sendData_);
+            client.dataTransmission();            
+            continue;
+        }
+        else if (keyCommand == newMessageMsg)
+        {
+            createMessage(receivedData);
+            continue;
+        }
+        else if (keyCommand == beginUserListMsg)
+        {
+            recivingChatData('u');
+            continue;
+        }
+        else if (keyCommand == beginChatListMsg)
+        {
+            recivingChatData('c');
+            continue;
+        }
+        else if (keyCommand == exitChatMsg)
+        {
+            std::cout << "Exit chat...\n";
+            close(client.socket_file_descriptor);
+            return;
+        }
+        else
+        {
+            std::cout << receivedData;
+        }
+        
+        std::getline(std::cin, client.sendData_);
+        
+        if (client.sendData_ == "v")
+        {
+            std::cout << "        CHAT:\n";
+            viewChat();
+        }
+        else if (client.sendData_ == "u")
+        {
+            std::cout << "        USER LIST:\n";
+            viewUsers();
+        }
+
+        client.dataTransmission();
     }    
 }
 

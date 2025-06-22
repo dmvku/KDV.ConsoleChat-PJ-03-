@@ -24,5 +24,4 @@ const uint H[5] = {
 uint cycle_shift_left(uint val, int bit_count);
 uint bring_to_human_view(uint val);
 
-uint* sha1(std::string pass); // îòäàííûé ìàññèâ íóæíî óäàëèòü âðó÷íóþ
-std::string passwordHashing(std::string pass);
+std::string sha1(std::string pass); // îòäàííûé ìàññèâ íóæíî óäàëèòü âðó÷íóþ
