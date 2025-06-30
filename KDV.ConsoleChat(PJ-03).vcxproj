@@ -132,7 +132,6 @@
     <ClCompile Include="connection_config.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="message.cpp" />
-    <ClCompile Include="sha1.cpp" />
     <ClCompile Include="socket.cpp" />
     <ClCompile Include="TCP_Server_Linux.cpp" />
     <ClCompile Include="user.cpp" />
@@ -142,7 +141,6 @@
     <ClInclude Include="connection_config.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="message.h" />
-    <ClInclude Include="sha1.h" />
     <ClInclude Include="socket.h" />
     <ClInclude Include="user.h" />
   </ItemGroup>

@@ -75,7 +75,7 @@ bool Chat::userAutorization()
 		{
 			server.sendData_ = serverCommand::serviceMsg
 				+ textColor::red
-				+ std::string("Users not found. Please register...\n")
+				+ "Users not found. Please register...\n"
 				+ textColor::resetColor;
 			server.dataTransmission();
 			return registerUser();
@@ -123,7 +123,7 @@ bool Chat::registerUser()
 			server.sendData_ = serverCommand::serviceMsg
 				+ textColor::red
 				+ std::string(warning.what())
-				+ std::string("login is busy. Ñhoose a different login...\n")
+				+ "login is busy. Ñhoose a different login...\n"
 				+ textColor::resetColor;
 			std::cout << server.sendData_;
 			server.dataTransmission();
@@ -134,7 +134,7 @@ bool Chat::registerUser()
 	
 	server.sendData_ = serverCommand::passwordMsg
 		+ textColor::yellow
-		+ std::string("Password: ")
+		+ "Password: "
 		+ textColor::resetColor;
 	server.dataTransmission();
 	server.dataRecieving();
@@ -161,7 +161,7 @@ bool Chat::registerUser()
 			server.sendData_ = serverCommand::serviceMsg
 				+ textColor::red
 				+ std::string(warning.what())
-				+ std::string("name is busy. Ñhoose a different name...\n")
+				+ "name is busy. Ñhoose a different name...\n"
 				+ textColor::resetColor;
 			std::cout << server.sendData_;
 			server.dataTransmission();
@@ -191,7 +191,7 @@ bool Chat::registerUser()
 	loginUser_ = login;
 	server.sendData_ = serverCommand::serviceMsg
 		+ textColor::green
-		+ std::string("You are is registred and login...\n")
+		+ "You are is registred and login...\n"
 		+ textColor::resetColor;
 	server.dataTransmission();
 		
@@ -216,7 +216,7 @@ bool Chat::loginUser()
 
 		server.sendData_ = serverCommand::passwordMsg
 			+ textColor::yellow
-			+ std::string("Password: ")
+			+ "Password: "
 			+ textColor::resetColor;
 		server.dataTransmission();
 		server.dataRecieving();
@@ -328,9 +328,9 @@ bool Chat::chatMenu()
 {
 	server.sendData_ = serverCommand::serviceMsg
 		+ textColor::green
-		+ std::string("\nUser ")
+		+ "\nUser "
 		+ loginUser_
-		+ std::string(" is login...\n")
+		+ " is login...\n"
 		+ textColor::resetColor;
 	server.dataTransmission();
 
@@ -393,7 +393,7 @@ void Chat::newMessage()
 		{
 			server.sendData_ = serverCommand::serviceMsg
 				+ textColor::red
-				+ std::string("User not found!\n")
+				+ "User not found!\n"
 				+ textColor::resetColor;
 			server.dataTransmission();
 			return;
@@ -401,7 +401,7 @@ void Chat::newMessage()
 	}
 
 	server.sendData_ = textColor::yellow
-		+ "Input massage text:\n"
+		+ "Input message text:\n"
 		+ textColor::resetColor;
 	server.dataTransmission();
 	server.dataRecieving();

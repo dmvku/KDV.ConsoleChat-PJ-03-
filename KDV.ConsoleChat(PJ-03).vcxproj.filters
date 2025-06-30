@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="sha1.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="chat.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
@@ -41,9 +38,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="sha1.h">
-      <Filter>Исходные файлы</Filter>
-    </ClInclude>
     <ClInclude Include="chat.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>

@@ -13,6 +13,7 @@ Socket::Socket()
 Socket::~Socket()
 {
 	close(connection);
+	//close(bind_status);
 	close(sockert_file_descriptor);
 }
 
@@ -75,8 +76,7 @@ void Socket::dataTransmission()
 {
 	bzero(message, MESSAGE_LENGTH);
 	std::copy(sendData_.begin(), sendData_.end(), message);
-	ssize_t bytes = write(connection, message, sizeof(message));
-	// Если передали >= 0  байт, значит пересылка прошла успешно
+	ssize_t bytes = write(connection, message, sizeof(message));	
 	if (bytes >= 0)
 	{
 		std::cout << "Data successfully sent to the client: \033[34m\n"
