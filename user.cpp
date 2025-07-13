@@ -1,8 +1,8 @@
 #include "user.h"
 
-User::User(const std::string& login, const std::string& passwordHash,
-	const std::string& name)
-	: login_{ login }, passwordHash_{ passwordHash }, name_{ name } {
+User::User(std::string userID) : userID_{ userID }
+{
+
 }
 
 User::~User()
@@ -10,32 +10,39 @@ User::~User()
 
 }
 
-const std::string& User::getLogin() const
+const std::string User::getUserID() const
 {
-	return login_;
+	return userID_;
 }
 
-const std::string& User::getPasswordHash() const
+const std::string User::getDeliveredMessage() const
 {
-	return passwordHash_;
+	return deliveredMessage_;
 }
 
-const std::string& User::getName() const
+const std::string User::getViewedMessage() const
 {
-	return name_;
+	return viewedMessage_;
 }
 
-void User::setLogin(std::string& login)
+void User::setUserID(std::string userID)
 {
-	login_ = login;
+	userID_ = userID;
 }
 
-void User::setPasswordHash(std::string& passwordHash)
+void User::setDeliveredMessage(std::string& deliveredMessage)
 {
-	passwordHash_ = passwordHash;
+	deliveredMessage_ = deliveredMessage;
 }
 
-void User::setName(std::string& name)
+void User::setViewedMessage(std::string& viewedMessage)
 {
-	name_ = name;
+	viewedMessage_ = viewedMessage;
+}
+
+void User::clearUser()
+{
+	userID_.clear();
+	deliveredMessage_.clear();
+	viewedMessage_.clear();
 }

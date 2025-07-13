@@ -1,15 +1,21 @@
 #pragma once
+#include "server_config.h"
 
-#include <unistd.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string>
 #include <vector>
 
-#include "connection_config.h"
-
 #define MESSAGE_LENGTH 1024 // Максимальный размер буфера для данных
+
+namespace socketLogColor
+{
+	const std::string resetColor = "\033[0m";
+	const std::string red = "\033[31m";
+	const std::string green = "\033[32m";
+	const std::string yellow = "\033[33m";
+}
 
 class Socket
 {
@@ -31,10 +37,14 @@ public:
 	void startServer();
 	void stopServer();
 	void createConnection();
+	void closeConnection();
 	void dataTransmission();
 	void dataRecieving();	
 	const int getPort() const;
 
 private:
+	ServerConfig serverConfig;
 	int port_{};
+
+	void setPort();
 };

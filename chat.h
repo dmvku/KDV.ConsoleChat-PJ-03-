@@ -3,8 +3,8 @@
 #include <vector>
 
 #include "socket.h"
+#include "database.h"
 #include "user.h"
-#include "message.h"
 
 namespace serverCommand
 {
@@ -13,11 +13,12 @@ namespace serverCommand
 	const std::string loginMsg = "#LOGIN|";
 	const std::string passwordMsg = "#PASSW|";
 	const std::string newMessageMsg = "#NEWMS|";
+	const std::string deleteMessageMsg = "#DELMS|";
 	const std::string beginUserListMsg = "#BULST|";
 	const std::string endUserListMsg = "#EULST";
 	const std::string beginChatListMsg = "#BCLST|";
 	const std::string endChatListMsg = "#ECLST";
-	const std::string exitChatMsg = "#EXITC|";
+	const std::string exitChatMsg = "#EXITC|";	
 	const std::string confirmationMsg = "#OK";
 }
 
@@ -34,6 +35,18 @@ namespace textColor
 	const std::string white = "\033[37m";
 }
 
+namespace userParameters
+{
+	const std::string ID = "User ID";
+	const std::string login = "Login";
+	const std::string name = "Name";
+	const std::string surname = "Surname";
+	const std::string password = "Password";
+	const std::string email = "Email";
+	const std::string recipient = "Enter the recipient's name";
+	const std::string message = "Enter the text of the message";
+}
+
 class Chat
 {
 public:
@@ -42,30 +55,52 @@ public:
 
 	void runChat();
 
-private:		
-	Socket server;
-	std::vector<User> chatUsers_;
-	std::vector<Message> chatMessages_;
-	std::string loginUser_;	
-	std::string usersFile_{ "users.data" };
-	std::string messagesFile_{ "messages.data" };
+private:	
+	struct tempUserData
+	{
+	public:
+		std::string tempID;
+		std::string tempLogin;
+		std::string tempPasswordHash;
+		std::string tempName;
+		std::string tempSurname;
+		std::string tempEmail;
+		std::string tempStatus;
+		std::string tempDeliveredMessage;
+		std::string tempViewedMessage;
+	};
+
+	//tempUserData* tempUser  = new tempUserData;
+	Database chatDB;
+	Socket server;	
+	User loginUser_;
+	//std::vector<User> onlineUsers_;	
+	
+	std::string queryString;	
 	
 	bool userAutorization();
 	bool registerUser();
 	bool loginUser();
-	void sendChatData();
+	void deleteUser();	
 	void sendUserList();
 	void sendMessages();
 	bool chatMenu();
 	void newMessage();	
-	bool checkUserLogin(std::string& login);
-	bool checkUserName(std::string& name);
-	void readDataFile(std::string& file);
+	void deleteMessage();
+	bool searchUserByLogin(tempUserData* tempUser);	
+	bool searchUserByName(tempUserData* tempUser, std::string& recipient);
+	bool checkUserFullName(tempUserData* tempUser);
+	void queryPrint();
+	void sendDBErrorMessage();
+	std::string requestingUserParameter(std::string parameter);
+	//std::string requestingName();
+	//std::string requestingPassword();
+	/*void readDataFile(std::string& file);
 	void readUsersFile(std::string& line);
 	void readMessagesFile(std::string& line);	
-	std::string dataParsing(std::string& data);
+	std::string dataParsing(std::string& data);*/
 
-	// void viewChat();
-	// void userList();
-	// bool requestProcessing(std::string& data);
+	 void viewChat();
+	 //void viewUserList();
+	 //bool requestProcessing(std::string& data);
 };

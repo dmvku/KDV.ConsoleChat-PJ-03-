@@ -5,23 +5,21 @@ class User
 {
 public:
 	User() = default;
-	User(const std::string& login, const std::string& passwordHash, const std::string& name);
+	User(std::string userID);
 	~User();
 
-	const std::string& getLogin() const;
-	const std::string& getPasswordHash() const;
-	const std::string& getName() const;
-	const int getUserID() const;
-
-	void setLogin(std::string& login);
-	void setPasswordHash(std::string& passwordHash);
-	void setName(std::string& name);
-	void setUserID(int userID);
+	const std::string getUserID() const;
+	const std::string getDeliveredMessage() const;
+	const std::string getViewedMessage() const;	
+	
+	void setUserID(std::string userID);
+	void setDeliveredMessage(std::string& deliveredMessage);
+	void setViewedMessage(std::string& viewedMessage);
+		
+	void clearUser();
 
 private:
-	std::string login_;
-	std::string passwordHash_;
-	std::string name_;
-	int UserID{};
-
+	std::string userID_{ 0 };
+	std::string deliveredMessage_;	
+	std::string viewedMessage_;	
 };

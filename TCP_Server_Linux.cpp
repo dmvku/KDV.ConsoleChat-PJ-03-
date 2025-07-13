@@ -1,8 +1,12 @@
 ﻿#include <iostream>
 
-#include "connection_config.h"
+#include "server_config.h"
 #include "chat.h"
 #include "socket.h"
+
+extern const char* DBConfigFile = "database.config";
+extern const char* serverConfigFile = "connection.config";
+// extern const char* logFile = "chat.log";
 
 int main()
 {    
