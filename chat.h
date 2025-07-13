@@ -14,6 +14,7 @@ namespace serverCommand
 	const std::string loginMsg = "#LOGIN";
 	const std::string passwordMsg = "#PASSW";
 	const std::string newMessageMsg = "#NEWMS";
+	const std::string deleteMessageMsg = "#DELMS";
 	const std::string beginUserListMsg = "#BULST";
 	const std::string endUserListMsg = "#EULST";
 	const std::string beginChatListMsg = "#BCLST";
@@ -48,10 +49,20 @@ private:
 	User currentUser_;
 	std::vector<User> chatUsers_;
 	std::vector<Message> chatMessages_;	
-	
-	void createMessage(std::string& newMessage);
+	std::string recievedData;
+	std::string keyCommand;
+		
+	void loginUser();	
+	void newMessage();
+	void addMessage();
+	void deleteMessage();
+	void addUsersData();
 	void viewChat();
 	void viewUsers();
-	void recivingChatData(char list);
-	std::string dataParsing(std::string& data);	
+	std::string getNameByUserID(unsigned long userID);	
+	std::string getSurnameByUserID(unsigned long userID);
+	std::string showUsersMessage();
+	void recievingChatData(char list);
+	void recievingData();
+	std::string dataParsing();	
 };

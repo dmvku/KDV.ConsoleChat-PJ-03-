@@ -7,121 +7,136 @@
 
 ConnectionConfig::ConnectionConfig()
 {
-	readConnectionConfig();
+	fileOptions();
 }
 
-void ConnectionConfig::readConnectionConfig()
+ConnectionConfig::~ConnectionConfig()
 {
-	std::string dataLine;
-	std::string keyWord{ "Server" };
-	std::string separator{ ":" };
 
-	std::fstream fileStream(connectionConfigFile, std::ios::in);
-	
+}
+
+void ConnectionConfig::fileOptions()
+{
+	openFile();
+	readFile();
+	fileStream.close();
+	checkParameters();
+	saveFile();
+}
+
+void ConnectionConfig::openFile()
+{
+	fileStream.open(connectionConfigFile, std::ios::in);
 	if (!fileStream.is_open())
 	{
-		std::cout << "Server parameter file not found...\n";
-		std::fstream fileStream(connectionConfigFile, std::ios::in | std::ios::out | std::ios::app);
-		std::filesystem::permissions(connectionConfigFile,
-			std::filesystem::perms::group_all | std::filesystem::perms::others_all,
-			std::filesystem::perm_options::remove);
-		setServerPort();
-		setServerIPAddress();
+		std::cout << "Connection config file not found...\n";
+		createFile();
+		setConnectionParameters();
 	}
-	else
-	{		
-		std::getline(fileStream, dataLine);
+}
+
+void ConnectionConfig::readFile()
+{
+	std::string dataLine;
+	std::string separator{ ":" };
+
+	while (std::getline(fileStream, dataLine))
+	{
 		size_t separatorPoint = dataLine.find(separator);
-		if (separatorPoint == std::string::npos
-			|| dataLine.substr(0, separatorPoint) != keyWord)
+		if (separatorPoint == std::string::npos)
 		{
-			std::cout << "Server parameter not found...\n";	
-			setServerPort();
-			setServerIPAddress();
+			std::cout << "Connection parameter not found or corrupted...\n";
+			setConnectionParameters();
 		}
 		else
 		{
-			dataLine.erase(0, separatorPoint + 1);
-			size_t separatorPoint = dataLine.find(separator);
-			addressIP_ = dataLine.substr(0, separatorPoint);
-			port_ = std::stoi(dataLine.substr(separatorPoint + 1));
-			std::cout << "Find server parameters: " << addressIP_
-				<< ":" << port_ << "\n";
-			std::cout << "Do you want to change server parameters (y/n)? ";
-			char action{ '\0' };
-			std::cin >> action;
-			if (action == 'y')
-			{				
-				setServerPort();
-				setServerIPAddress();
+			std::string parameterName = dataLine.substr(0, separatorPoint);
+			if (parameterName == parametersName::n_addressIP)
+			{
+				addressIP_ = dataLine.substr(separatorPoint + 1);
+			}			
+			else if (parameterName == parametersName::n_port)
+			{
+				port_ = stoi(dataLine.substr(separatorPoint + 1));
 			}
 		}
 	}
-
-	fileStream.close();
-
-	checkServerPort();
-	checkServerIPAddress();
-
-	std::fstream fs(connectionConfigFile,
-		std::ios::out | std::ios::trunc);
-	if (fs.is_open())
-	{
-		fs << keyWord << separator << addressIP_ << ":" << port_;
-	}
-	fs.close();
 }
 
-void ConnectionConfig::checkServerPort()
+void ConnectionConfig::checkParameters()
+{
+	checkAddressIP();
+	checkPort();
+	std::cout << "Actual connection parameters:\n"
+		<< parametersName::n_addressIP << ": " << addressIP_ << "\n"		
+		<< parametersName::n_port << ": " << port_ << "\n";
+
+	std::cout << "Do you want to change connection parameters (y/n)? ";
+	char action{ '\0' };
+	std::cin >> action;
+	if (action == 'y')
+	{
+		setConnectionParameters();
+	}
+}
+
+void ConnectionConfig::createFile()
+{
+	std::fstream fileStream(connectionConfigFile,
+		std::ios::in | std::ios::out | std::ios::app);
+	std::filesystem::permissions(connectionConfigFile,
+		std::filesystem::perms::group_all | std::filesystem::perms::others_all,
+		std::filesystem::perm_options::remove);
+}
+
+void ConnectionConfig::saveFile()
+{
+	fileStream.open(connectionConfigFile, std::ios::out | std::ios::trunc);
+	if (!fileStream.is_open())
+	{
+		createFile();
+	}
+	fileStream << parametersName::n_addressIP << ":" << addressIP_ << "\n"		
+		<< parametersName::n_port << ":" << port_ << "\n";
+	fileStream.close();
+}
+
+void ConnectionConfig::setConnectionParameters()
+{
+	setAddressIP();	
+	setPort();
+}
+
+void ConnectionConfig::checkPort()
 {
 	int minPort{ 1024 };
 
 	if (port_ < minPort || port_ > USHRT_MAX)
 	{
-		if (!port_)
-		{
-			return;
-		}
-
 		std::cout << "Illegal port: " << port_ << "\n";
-		setServerPort();
-
-		if (port_ < minPort || port_ > USHRT_MAX)
-		{
-			port_ = PORT;
-			std::cout << "The default port value is set: " << port_ << "\n";
-		}
+		port_ = PORT;
+		std::cout << "The default port value is set: " << port_ << "\n";
 	}
-	
 	return;
 }
 
-void ConnectionConfig::checkServerIPAddress()
+void ConnectionConfig::checkAddressIP()
 {		
-	if (addressIP_ == "0")
+	if (!parsingAddressIP())
 	{
-		return;
-	}		
-	
-	if (!parsingIPAddress())
-	{
-		setServerIPAddress();
+		std::cout << "Illegal IP address: " << addressIP_ << "\n";
+		addressIP_ == "127.0.0.1";
+		std::cout << "The default IP address value is set: "
+			<< addressIP_ << "\n";
 	}
-
-	if (!parsingIPAddress())
-	{
-		addressIP_ == "0";
-	}
-
 	return;
 }
 
-bool ConnectionConfig::parsingIPAddress()
+bool ConnectionConfig::parsingAddressIP()
 {
 	std::string separator{ "." };
 	int numberOfOctets{ 4 };
 	int octet{};
-	// int numberOfOctets{ 4 };
 	std::string address = addressIP_;
 
 	for (int octetsCount{ 1 }; octetsCount <= numberOfOctets; octetsCount++)
@@ -148,20 +163,22 @@ bool ConnectionConfig::parsingIPAddress()
 			return false;
 		}
 	}
-
 	return true;
 }
 
-void ConnectionConfig::setServerPort()
-{	
-	std::cout << "Set valid port from 1024 to 65535 (0 - stop server): ";
-	std::cin >> port_;	
+void ConnectionConfig::setAddressIP()
+{
+	std::cout << "Set the DB server IP address in the format"
+		<< "XXX.XXX.XXX.XXX (default - 127.0.0.1): ";
+	std::cin >> addressIP_;
+	checkAddressIP();
 }
 
-void ConnectionConfig::setServerIPAddress()
+void ConnectionConfig::setPort()
 {
-	std::cout << "Set the IP address in the format XXX.XXX.XXX.XXX\n";
-	std::cin >> addressIP_;	
+	std::cout << "Set valid port from 1024 to 65535 (default - 7777): ";
+	std::cin >> port_;
+	checkPort();
 }
 
 const std::string ConnectionConfig::getAddressIP() const

@@ -23,9 +23,8 @@ public:
 
 	Socket();
 	~Socket();
-	bool startClient();
-	void configuringTheServerConnection();
-	void createSocket();	
+	void startClient();
+	void configuringTheServerConnection();	
 	void dataTransmission();
 	void dataRecieving();
 	

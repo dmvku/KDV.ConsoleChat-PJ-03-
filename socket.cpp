@@ -17,18 +17,7 @@ void Socket::configuringTheServerConnection()
     serverPort_ = serverConfig_.getPort();
 }
 
-bool Socket::startClient()
-{    
-    if (serverAddress_ == "0" || serverPort_ == 0)
-    {
-        std::cout << "Exit chat...\n";
-        return 0;
-    }
-    createSocket();  
-    return 1;
-}
-
-void Socket::createSocket()
+void Socket::startClient()
 {
     // Создадим сокет
     socket_file_descriptor = socket(AF_INET, SOCK_STREAM, 0);
