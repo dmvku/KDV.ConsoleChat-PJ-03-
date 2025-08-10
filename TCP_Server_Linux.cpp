@@ -6,7 +6,7 @@
 
 extern const char* DBConfigFile = "database.config";
 extern const char* serverConfigFile = "connection.config";
-// extern const char* logFile = "chat.log";
+extern const char* serverLogFile = "server.log";
 
 int main()
 {    

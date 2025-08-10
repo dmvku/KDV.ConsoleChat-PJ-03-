@@ -112,18 +112,22 @@ bool Database::databaseQuery(std::string& query)
 	
 	for (int attemptCount = 1; attemptCount <= 3; attemptCount++)
 	{
-		std::cout << attemptCount << " - attempt... ";
+		// std::cout << attemptCount << " - attempt... ";
 		if (mysql_query(&mysql, query_content)) //Делаем запрос к таблице
 		{
-			std::cout << logColor::red << "Error: " << logColor::resetColor
-				<< mysql_errno(&mysql) << " " << mysql_error(&mysql) << "\n";
+			databaseLog_ << "Error: "
+				<< mysql_errno(&mysql) << " "
+				<< mysql_error(&mysql);
+
+			/*std::cout << logColor::red << "Error: " << logColor::resetColor
+				<< mysql_errno(&mysql) << " " << mysql_error(&mysql) << "\n";*/
 			mysqlError = mysql_errno(&mysql);
 			sleep(3); 			
 		}
 		else
 		{
-			std::cout << logColor::green << "Done!"
-				<< logColor::resetColor << "\n";
+			//std::cout << logColor::green << "Done!"
+			//	<< logColor::resetColor << "\n";
 
 			//Выводим все что есть в базе через цикл
 			if (result_ = mysql_store_result(&mysql))
@@ -146,15 +150,19 @@ bool Database::databaseQuery(std::string& query)
 			}
 			else
 			{
-				std::cout << "The query returned NULL.\n";
+				//std::cout << "The query returned NULL.\n";
 				mysqlError = mysql_errno(&mysql);
 				if (!mysqlError)
 				{
 					return true;
 				}
-				std::cout << logColor::red << "Error: "
+				databaseLog_ << "Error: "
+					<< mysql_errno(&mysql) << " "
+					<< mysql_error(&mysql);
+
+				/*std::cout << logColor::red << "Error: "
 					<< logColor::resetColor << mysql_errno(&mysql)
-					<< " " << mysql_error(&mysql) << "\n";				
+					<< " " << mysql_error(&mysql) << "\n";*/				
 			}
 		}		
 	}	

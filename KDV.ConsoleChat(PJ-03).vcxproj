@@ -131,6 +131,7 @@
     <ClCompile Include="chat.cpp" />
     <ClCompile Include="database.cpp" />
     <ClCompile Include="DB_config.cpp" />
+    <ClCompile Include="logger.cpp" />
     <ClCompile Include="server_config.cpp" />
     <ClCompile Include="socket.cpp" />
     <ClCompile Include="TCP_Server_Linux.cpp" />
@@ -141,6 +142,7 @@
     <ClInclude Include="database.h" />
     <ClInclude Include="database_constructor.h" />
     <ClInclude Include="DB_config.h" />
+    <ClInclude Include="logger.h" />
     <ClInclude Include="server_config.h" />
     <ClInclude Include="socket.h" />
     <ClInclude Include="user.h" />

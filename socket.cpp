@@ -100,9 +100,10 @@ void Socket::dataTransmission()
 	ssize_t bytes = write(connection, message, sizeof(message));	
 	if (bytes >= 0)
 	{
-		std::cout << socketLogColor::green
+		socketSendResultLog_ = "Done.";
+		/*std::cout << socketLogColor::green
 			<< "Sent: " << socketLogColor::resetColor
-			<< message << "\n";
+			<< message << "\n";*/
 	}	
 }
 
@@ -110,9 +111,9 @@ void Socket::dataRecieving()
 {
 	bzero(message, MESSAGE_LENGTH);
 	read(connection, message, sizeof(message));
-	std::cout << socketLogColor::yellow 
+	/*std::cout << socketLogColor::yellow 
 		<< "Received: " << socketLogColor::resetColor
-		<< message << "\n";
+		<< message << "\n";*/
 }
 
 const int Socket::getPort() const

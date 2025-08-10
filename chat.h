@@ -1,10 +1,13 @@
 #pragma once
-#include <string>
-#include <vector>
 
 #include "socket.h"
 #include "database.h"
 #include "user.h"
+#include "logger.h"
+
+#include <string>
+#include <vector>
+#include <shared_mutex>
 
 namespace serverCommand
 {
@@ -69,11 +72,13 @@ private:
 		std::string tempDeliveredMessage;
 		std::string tempViewedMessage;
 	};
-
+	
 	//tempUserData* tempUser  = new tempUserData;
 	Database chatDB;
 	Socket server;	
 	User loginUser_;
+	Logger logger_;
+	std::string chatLogLine_;
 	//std::vector<User> onlineUsers_;	
 	
 	std::string queryString;	

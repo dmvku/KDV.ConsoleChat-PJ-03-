@@ -33,6 +33,7 @@ public:
 
 	char message[MESSAGE_LENGTH];	
 	std::string sendData_;
+	std::string socketSendResultLog_;
 	
 	void startServer();
 	void stopServer();

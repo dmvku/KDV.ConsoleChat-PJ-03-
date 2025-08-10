@@ -1,17 +1,19 @@
+#include "chat.h"
+#include "socket.h"
+#include "database.h"
+
 #include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
 #include <memory>
-
-#include "chat.h"
-#include "socket.h"
-#include "database.h"
+#include <thread>
+#include <shared_mutex>
 
 Chat::Chat()
 {   	
-	
+	//Logger chatLogger;
 }
 
 Chat::~Chat()
@@ -26,6 +28,7 @@ void Chat::runChat()
 		return;
 	}
 	
+	logger_.readingLog();   ////////////////////////////////////////////////////////////
 	std::cout << "Run chat...\n";
 
 	while (true)
@@ -34,9 +37,16 @@ void Chat::runChat()
 		
 		// Call to register or login
 		if (!userAutorization())
-		{
-			server.sendData_ = serverCommand::exitChatMsg;
+		{		
+			server.sendData_ = serverCommand::exitChatMsg;			
 			server.dataTransmission();
+
+			chatLogLine_ = "Socket "
+				+ std::to_string(server.connection)
+				+ " - exit autorization... "
+				+ server.socketSendResultLog_;
+			logger_.createLogLine(chatLogLine_);
+
 			server.closeConnection();
 			continue;
 		}
@@ -46,13 +56,13 @@ void Chat::runChat()
 
 		if (!chatMenu())
 		{
-			std::cout << "End chat...\n";
+			//std::cout << "End chat...\n";			
 			server.stopServer();			
 			return;
 		}
 		else
 		{
-			std::cout << "Logout...\n";
+			//std::cout << "Logout...\n";			
 			loginUser_.clearUser();
 			server.closeConnection();
 		}
@@ -61,30 +71,51 @@ void Chat::runChat()
 
 bool Chat::userAutorization()
 {
-	std::cout << "Register...\n";
+	//std::cout << "Register...\n";	
+	
 	server.sendData_ = serverCommand::helloMsg
 		+ textColor::green
 		+ "Hello!\nPlease (l)ogin, (r)egister, (d)elete user " 
 		+ "or other key for exit: "
 		+ textColor::resetColor;	
 	server.dataTransmission();
+
+	chatLogLine_ = "Socket "
+		+ std::to_string(server.connection)
+		+ " - command 'Autorization menu'. Send menu. "
+		+ server.socketSendResultLog_;
+	logger_.createLogLine(chatLogLine_);
+
 	server.dataRecieving();	
 			
 	switch (server.message[0])
 	{
 	case 'l':
+		chatLogLine_ = "Socket "
+			+ std::to_string(server.connection)
+			+ " - command 'Login'. Query the database for a non-empty.";
+		logger_.createLogLine(chatLogLine_);
+
 		queryString = std::string("SELECT COUNT(*) FROM users");
-		queryPrint();
+		//queryPrint();
 		if (chatDB.databaseQuery(queryString))
 		{				
+			logger_.createLogLine("Query is done.");
 			if (chatDB.resultQuery_.empty()
 				|| std::stoi(chatDB.resultField_) <= 1) // "to_all" is exist
 			{
 				server.sendData_ = serverCommand::serviceMsg
 					+ textColor::red
 					+ "Users not found. Please register...\n"
-					+ textColor::resetColor;
+					+ textColor::resetColor;				
 				server.dataTransmission();
+
+				chatLogLine_ = "Socket "
+					+ std::to_string(server.connection)
+					+ " - Database: users not found. Sent warning. Go register. "
+					+ server.socketSendResultLog_;
+				logger_.createLogLine(chatLogLine_);
+
 				if (!registerUser())
 				{
 					return false;
@@ -94,21 +125,39 @@ bool Chat::userAutorization()
 		}
 		else
 		{
+			logger_.createLogLine(chatDB.databaseLog_.str());
 			sendDBErrorMessage();
 			return false;
 		}			
 	case 'r':
+		chatLogLine_ = "Socket "
+			+ std::to_string(server.connection)
+			+ " - command 'Register'.";
+		logger_.createLogLine(chatLogLine_);
+
 		if (!registerUser())
 		{
 			return false;
 		}
 		return loginUser();
 	case 'd':
+		chatLogLine_ = "Socket "
+			+ std::to_string(server.connection)
+			+ " - command 'Delete user'.";
+		logger_.createLogLine(chatLogLine_);
+
 		deleteUser();
 		return false;
 	default:
 		server.sendData_ = serverCommand::exitChatMsg;
 		server.dataTransmission();
+
+		chatLogLine_ = "Socket "
+			+ std::to_string(server.connection)
+			+ " - sent 'exit autorization'. "
+			+ server.socketSendResultLog_;
+		logger_.createLogLine(chatLogLine_);
+
 		return false;
 	}
 }
@@ -121,7 +170,12 @@ bool Chat::registerUser()
 
 	server.sendData_ = serverCommand::loginMsg;
 	server.dataTransmission();		
-	std::cout << "Register user...\n";	
+	//std::cout << "Register user...\n";
+	chatLogLine_ = "Socket "
+		+ std::to_string(server.connection)
+		+ " - Register user."
+		+ server.socketSendResultLog_;
+	logger_.createLogLine(chatLogLine_);	
 	
 	do
 	{
@@ -137,7 +191,13 @@ bool Chat::registerUser()
 				+ "Ñhoose a different login...\n"
 				+ textColor::resetColor;
 			std::cout << server.sendData_;
-			server.dataTransmission();			
+			server.dataTransmission();	
+
+			chatLogLine_ = "Socket "
+				+ std::to_string(server.connection)
+				+ " - login is busy. Sent warning. "
+				+ server.socketSendResultLog_;
+			logger_.createLogLine(chatLogLine_);
 		}
 	} while (isFoundUser);
 		
@@ -161,7 +221,13 @@ bool Chat::registerUser()
 				+ "' is busy.Ñhoose a different name...\n"
 				+ textColor::resetColor;
 			std::cout << server.sendData_;
-			server.dataTransmission();			
+			server.dataTransmission();	
+
+			chatLogLine_ = "Socket "
+				+ std::to_string(server.connection)
+				+ " - name is busy. Sent warning. "
+				+ server.socketSendResultLog_;
+			logger_.createLogLine(chatLogLine_);
 		}		
 	} while (isFoundUser);
 
@@ -184,36 +250,58 @@ bool Chat::registerUser()
 		+ tempUser->tempName + "', '"
 		+ tempUser->tempSurname + "', '"
 		+ tempUser->tempEmail + "')";
-	std::cout << queryString << "\n";
-	queryPrint(); 
+	//std::cout << queryString << "\n";
+	//queryPrint(); 
+	chatLogLine_ = "Socket "
+		+ std::to_string(server.connection)
+		+ " - Database: Query to add a user.";
+	logger_.createLogLine(chatLogLine_);
+
 	if (!chatDB.databaseQuery(queryString))
 	{
 		sendDBErrorMessage();
+		logger_.createLogLine(chatDB.databaseLog_.str());
 		return false;
 	}	
 
 	if (checkUserFullName(tempUser))
-	{
+	{		
 		queryString = std::string("INSERT INTO ")
 			+ "users_password (user_id, password_hash) "
 			+ "VALUES (" + tempUser->tempID + ", '"
 			+ tempUser->tempPasswordHash + "')";
-		queryPrint();
+
+		chatLogLine_ = "Socket "
+			+ std::to_string(server.connection)
+			+ " - Database: Query to add the users password.";
+		logger_.createLogLine(chatLogLine_);
+
+		//queryPrint();
 		if (!chatDB.databaseQuery(queryString))
 		{
 			sendDBErrorMessage();
+			logger_.createLogLine(chatDB.databaseLog_.str());
 			return false;
 		}
 
 		server.sendData_ = serverCommand::serviceMsg
 			+ textColor::green + "User " + tempUser->tempName + " "
 			+ tempUser->tempSurname + " is registred.\n"
-			+ textColor::resetColor;
+			+ textColor::resetColor;		
 		server.dataTransmission();
+
+		chatLogLine_ = "Socket "
+			+ std::to_string(server.connection)
+			+ " - user " 
+			+ tempUser->tempID 
+			+ " is registred. "
+			+ server.socketSendResultLog_;
+		logger_.createLogLine(chatLogLine_);
 	}
 	else
 	{
 		sendDBErrorMessage();
+		logger_.createLogLine(chatDB.databaseLog_.str());
 	}
 
 	// connection socket	
@@ -229,7 +317,12 @@ bool Chat::loginUser()
 
 	server.sendData_ = serverCommand::loginMsg;		
 	server.dataTransmission();
-	std::cout << "Login user...\n";
+	//std::cout << "Login user...\n";
+	chatLogLine_ = "Socket "
+		+ std::to_string(server.connection)
+		+ " - authorization query. "
+		+ server.socketSendResultLog_;
+	logger_.createLogLine(chatLogLine_);
 
 	do
 	{
@@ -246,6 +339,7 @@ bool Chat::loginUser()
 				+ tempUser->tempName + "|"
 				+ tempUser->tempSurname + "|";
 			server.dataTransmission();
+
 			isFoundUser = true;
 		}
 		
@@ -256,11 +350,19 @@ bool Chat::loginUser()
 				+ "Type(e) for exit or any key for try again...\n"
 				+ textColor::resetColor;
 			server.dataTransmission();
+
+			chatLogLine_ = "Socket "
+				+ std::to_string(server.connection)
+				+ " - users login or password incorrect. Sent warning. "				
+				+ server.socketSendResultLog_;
+			logger_.createLogLine(chatLogLine_);
+
 			server.dataRecieving();
+
 			if (server.message[0] == 'e')
 			{				
 				return false;
-			}
+			}			
 		}	
 
 		loginUser_.setDeliveredMessage(tempUser->tempDeliveredMessage);
@@ -269,6 +371,15 @@ bool Chat::loginUser()
 	} while (!isFoundUser);
 
 	delete tempUser;
+
+	chatLogLine_ = "Socket "
+		+ std::to_string(server.connection)
+		+ ": user "
+		+ loginUser_.getUserID()
+		+ " is login. Sent user data. "
+		+ server.socketSendResultLog_;
+	logger_.createLogLine(chatLogLine_);
+
 	return true;
 }
 
@@ -280,7 +391,13 @@ void Chat::deleteUser()
 
 	server.sendData_ = serverCommand::loginMsg;
 	server.dataTransmission();
-	std::cout << "Deleting user...\n";
+
+	chatLogLine_ = "Socket "
+		+ std::to_string(server.connection)
+		+ " - deleting user. " 
+		+ server.socketSendResultLog_;
+	logger_.createLogLine(chatLogLine_);
+	//std::cout << "Deleting user...\n";
 
 	tempUser->tempLogin = requestingUserParameter(userParameters::login);
 	password = requestingUserParameter(userParameters::password);
@@ -291,26 +408,46 @@ void Chat::deleteUser()
 	{
 		queryString = std::string("UPDATE users ")
 			+ "SET status = 0 WHERE user_id = " + tempUser->tempID;
-		queryPrint();
+		//queryPrint();
+
+		chatLogLine_ = "Socket "
+			+ std::to_string(server.connection)
+			+ " - Database: Query to deleting a user.";
+		logger_.createLogLine(chatLogLine_);
+
 		if (!chatDB.databaseQuery(queryString))
 		{
 			sendDBErrorMessage();
+			logger_.createLogLine(chatDB.databaseLog_.str());
 		}
 		
 		queryString = std::string("UPDATE users_password ")
 			+ "SET password_hash = '0' WHERE user_id = " + tempUser->tempID;
-		queryPrint();
+		//queryPrint();
+
+		chatLogLine_ = "Socket "
+			+ std::to_string(server.connection)
+			+ " - Database: Query to deleting the users password.";
+		logger_.createLogLine(chatLogLine_);
+
 		if (chatDB.databaseQuery(queryString))
 		{
 			server.sendData_ = serverCommand::serviceMsg
 				+ textColor::red + "User "
 				+ tempUser->tempLogin + " has been deleted.\n"
 				+ textColor::resetColor;
+
+			chatLogLine_ = "Socket "
+				+ std::to_string(server.connection)
+				+ " - user is deleted..";
+			logger_.createLogLine(chatLogLine_);
+			logger_.createLogLine("..");
 			server.dataTransmission();
 		}
 		else
 		{
 			sendDBErrorMessage();
+			logger_.createLogLine(chatDB.databaseLog_.str());
 		}
 	}
 	else
@@ -320,6 +457,12 @@ void Chat::deleteUser()
 			+ "or the user has been deleted earlier...\n"
 			+ textColor::resetColor;
 		server.dataTransmission();
+
+		chatLogLine_ = "Socket "
+			+ std::to_string(server.connection)
+			+ " - invalid username or password to delete the user. "
+			+ server.socketSendResultLog_;
+		logger_.createLogLine(chatLogLine_);
 		//server.dataRecieving();
 	}	
 	delete tempUser;
@@ -329,7 +472,13 @@ void Chat::deleteUser()
 void Chat::sendUserList()
 {			
 	queryString = std::string("SELECT * FROM view_user_list");
-	queryPrint();	
+	// queryPrint();
+	
+	chatLogLine_ = "User "
+		+ loginUser_.getUserID()
+		+ " - Database: Query a userlist. ";		
+	logger_.createLogLine(chatLogLine_);
+	
 	if (chatDB.databaseQuery(queryString))
 	{
 		if (chatDB.resultQuery_.empty())
@@ -357,12 +506,19 @@ void Chat::sendUserList()
 			} while (true);
 		}
 		
-		server.sendData_ = serverCommand::endUserListMsg;
+		server.sendData_ = serverCommand::endUserListMsg;			
 		server.dataTransmission();
+
+		chatLogLine_ = "User "
+			+ loginUser_.getUserID()
+			+ " - user list is sended. "
+			+ server.socketSendResultLog_;
+		logger_.createLogLine(chatLogLine_);
 	}
 	else
 	{
 		sendDBErrorMessage();
+		logger_.createLogLine(chatDB.databaseLog_.str());
 	}	
 }
 
@@ -375,8 +531,14 @@ void Chat::sendMessages()
 		+ "WHERE sender_id = " + userID
 		+ " OR recipient_id = " + userID
 		+ " OR recipient_id = 1 "
-		+ "ORDER BY time_create ASC";		
-	queryPrint();	
+		+ "ORDER BY time_create ASC";	
+
+	chatLogLine_ = "User "
+		+ loginUser_.getUserID()
+		+ " - Database: Query messages. ";
+	logger_.createLogLine(chatLogLine_);
+
+	//queryPrint();	
 	if (chatDB.databaseQuery(queryString))
 	{
 		if (chatDB.resultQuery_.empty())
@@ -410,11 +572,23 @@ void Chat::sendMessages()
 			}
 			server.sendData_ = serverCommand::endChatListMsg;
 			server.dataTransmission();
+
+			chatLogLine_ = "User "
+				+ loginUser_.getUserID()
+				+ " - messages is sended. "
+				+ server.socketSendResultLog_;
+			logger_.createLogLine(chatLogLine_);			
 			
 			queryString = std::string("UPDATE users ")
 				+ "SET delivered_message = " + lastMessageID
 				+ " WHERE user_id = " + userID;
-			queryPrint();
+
+			chatLogLine_ = "User "
+				+ loginUser_.getUserID()
+				+ " - Database: set the last delivered message. ";
+			logger_.createLogLine(chatLogLine_);
+
+			//queryPrint();
 			if (!chatDB.databaseQuery(queryString))
 			{
 				sendDBErrorMessage();
@@ -425,6 +599,7 @@ void Chat::sendMessages()
 	else
 	{
 		sendDBErrorMessage();
+		logger_.createLogLine(chatDB.databaseLog_.str());
 	}	
 }
 
@@ -432,45 +607,90 @@ bool Chat::chatMenu()
 {
 	server.sendData_ = serverCommand::serviceMsg
 		+ textColor::green
-		+ "Wellcome to chat!\n"
+		+ "Welcome to chat!\n"
 		+ textColor::resetColor;			
 	server.dataTransmission();
 
+	chatLogLine_ = "User "
+		+ loginUser_.getUserID()
+		+ " - sent welcoming. ";	
+	logger_.createLogLine(chatLogLine_);
+
 	do
 	{
-		std::cout << "Main menu...\n";
+		//std::cout << "Main menu...\n";
 		server.sendData_ = textColor::cyan
 			+ "\nSelect action:\nn - New message\nd - delete message"
 			+ "\nv - View messages\nu - User list"
 			+ "\nl - Logout (exit client)\nother - Stop chat server\n"
 			+ textColor::resetColor;
 		server.dataTransmission();
+
+		chatLogLine_ = "User "
+			+ loginUser_.getUserID()
+			+ " - sent chat menu. ";
+		logger_.createLogLine(chatLogLine_);
+
 		server.dataRecieving();
 
 		switch (server.message[0])
 		{
 		case 'n':
+			chatLogLine_ = "User "
+				+ loginUser_.getUserID()
+				+ " - create new message. ";
+			logger_.createLogLine(chatLogLine_);
+
 			newMessage();
 			break;
 		case 'd':
+			chatLogLine_ = "User "
+				+ loginUser_.getUserID()
+				+ " - delete message. ";
+			logger_.createLogLine(chatLogLine_);
+
 			deleteMessage();
 			break;
 		case 'v':
-			std::cout << "User is viewed messages...\n";
+			//std::cout << "User is viewed messages...\n";
+
+			chatLogLine_ = "User "
+				+ loginUser_.getUserID()
+				+ " - viewed messages. ";
+			logger_.createLogLine(chatLogLine_);
+			
 			viewChat();
 			break;
 		case 'u':
-			std::cout << "User is viewed userlist...\n";			
+			//std::cout << "User is viewed userlist...\n";
+
+			chatLogLine_ = "User "
+				+ loginUser_.getUserID()
+				+ " - viewed userlist. ";
+			logger_.createLogLine(chatLogLine_);
+			
 			break;
 		case 'l':
 			server.sendData_ = serverCommand::exitChatMsg;
 			server.dataTransmission();
-			server.closeConnection();
+
+			chatLogLine_ = "User "
+				+ loginUser_.getUserID()
+				+ " - command 'Exit chat'";
+			logger_.createLogLine(chatLogLine_);
+
+			//server.closeConnection();
 			return 1;			
 		default:
 			server.sendData_ = serverCommand::exitChatMsg;
 			server.dataTransmission();
-			server.stopServer();
+
+			chatLogLine_ = "User "
+				+ loginUser_.getUserID()
+				+ " - command 'Logout'";
+			logger_.createLogLine(chatLogLine_);
+
+			//server.stopServer();
 			return 0;				
 		}
 	} while (true);
@@ -485,12 +705,18 @@ void Chat::newMessage()
 	
 	server.sendData_ = serverCommand::newMessageMsg;
 	server.dataTransmission();	
-	std::cout << "\nNew messages...\n";
+	//std::cout << "\nNew messages...\n";
 
 	server.sendData_ = textColor::cyan
 		+ "Select message type: \nw - write to the user\nother key - to all\n"
 		+ textColor::resetColor;
 	server.dataTransmission();
+
+	chatLogLine_ = "User "
+		+ loginUser_.getUserID()
+		+ " - sent new message menu.";
+	logger_.createLogLine(chatLogLine_);
+
 	server.dataRecieving();	
 	
 	if (server.message[0] == 'w')
@@ -509,6 +735,12 @@ void Chat::newMessage()
 			+ "User not found!\n"
 			+ textColor::resetColor;
 		server.dataTransmission();
+
+		chatLogLine_ = "User "
+			+ loginUser_.getUserID()
+			+ " - sent 'User not found'.";
+		logger_.createLogLine(chatLogLine_);
+
 		return;
 	}
 	
@@ -521,20 +753,39 @@ void Chat::newMessage()
 		    + "The message is empty...\n"
 			+ textColor::resetColor;
 		server.dataTransmission();
+
+		chatLogLine_ = "User "
+			+ loginUser_.getUserID()
+			+ " - sent 'The message is empty'.";
+		logger_.createLogLine(chatLogLine_);
+
 		return;
 	}
 	
 	queryString = std::string("INSERT INTO messages ")
 		+ "(sender_id, recipient_id, message) "
 		+ "VALUE (" + sender + ", " + recipient + ", '" + messageText + "')";
-	queryPrint();	
+
+	chatLogLine_ = "User "
+		+ loginUser_.getUserID()
+		+ " - Database: added new message. ";
+	logger_.createLogLine(chatLogLine_);
+
+	//queryPrint();	
 	if (!chatDB.databaseQuery(queryString))
 	{
 		sendDBErrorMessage();
+		logger_.createLogLine(chatDB.databaseLog_.str());
 	}
 	
-	queryString = std::string("SELECT max(time_create) FROM chat_list");		
-	queryPrint();
+	queryString = std::string("SELECT max(time_create) FROM chat_list");	
+
+	chatLogLine_ = "User "
+		+ loginUser_.getUserID()
+		+ " - Database: query the time to create a new message. ";
+	logger_.createLogLine(chatLogLine_);
+
+	//queryPrint();
 	if (chatDB.databaseQuery(queryString))
 	{
 		if (!chatDB.resultQuery_.empty())
@@ -545,14 +796,21 @@ void Chat::newMessage()
 	else
 	{
 		sendDBErrorMessage();
+		logger_.createLogLine(chatDB.databaseLog_.str());
 	}
 
 	queryString = std::string("SELECT * FROM chat_list ")
 		+ "WHERE sender_id = " + sender
 		+ " AND recipient_id = " + recipient
 		+ " AND message = '" + messageText
-		+ "' AND time_create = '" + createTime + "'";		
-	queryPrint();
+		+ "' AND time_create = '" + createTime + "'";	
+
+	chatLogLine_ = "User "
+		+ loginUser_.getUserID()
+		+ " - Database: query a new message to send. ";
+	logger_.createLogLine(chatLogLine_);
+
+	//queryPrint();
 	if (chatDB.databaseQuery(queryString))
 	{		
 		if (!chatDB.resultQuery_.empty())
@@ -564,11 +822,17 @@ void Chat::newMessage()
 				+ std::string(chatDB.resultRow_.at(3)) + "|"
 				+ std::string(chatDB.resultRow_.at(4)) + "|";
 			server.dataTransmission();
+
+			chatLogLine_ = "User "
+				+ loginUser_.getUserID()
+				+ " - sent new message. ";
+			logger_.createLogLine(chatLogLine_);
 		}
 	}
 	else
 	{
 		sendDBErrorMessage();
+		logger_.createLogLine(chatDB.databaseLog_.str());
 	}
 
 	delete tempUser;
@@ -581,6 +845,11 @@ void Chat::deleteMessage()
 
 	server.sendData_ = serverCommand::deleteMessageMsg;
 	server.dataTransmission();
+
+	chatLogLine_ = "User "
+		+ loginUser_.getUserID()
+		+ " - sent command 'Delete message'. ";
+	logger_.createLogLine(chatLogLine_);
 
 	server.sendData_ = serverCommand::beginUserListMsg;		
 	server.dataTransmission();
@@ -599,7 +868,13 @@ void Chat::deleteMessage()
 		+ "WHERE message_ID = " + deletingMessageID
 		+ " AND sender_id = " + loginUser_.getUserID()
 		+ " AND status != 0";
-	queryPrint();
+
+	chatLogLine_ = "User "
+		+ loginUser_.getUserID()
+		+ " - Database: query to search for a message to delete. ";
+	logger_.createLogLine(chatLogLine_);
+
+	//queryPrint();
 	if (chatDB.databaseQuery(queryString))
 	{		
 		if (chatDB.resultQuery_.empty() || chatDB.resultField_ == "0")
@@ -609,26 +884,40 @@ void Chat::deleteMessage()
 				+ deletingMessageID + " was not found or deleted...\n"
 				+ textColor::resetColor;
 			server.dataTransmission();	
+
+			chatLogLine_ = "User "
+				+ loginUser_.getUserID()
+				+ " - Database: message is not found. Sent warning.";
+			logger_.createLogLine(chatLogLine_);
+
 			return;
 		}		
 	}
 	else
 	{
 		sendDBErrorMessage();
+		logger_.createLogLine(chatDB.databaseLog_.str());
 		return;
 	}	
 
 	queryString = std::string("UPDATE messages SET status = 0 ")
 		+ "WHERE message_id = " + deletingMessageID;
+
 	if (!chatDB.databaseQuery(queryString))
 	{
 		sendDBErrorMessage();
+		logger_.createLogLine(chatDB.databaseLog_.str());
 		return;
 	}
 
 	server.sendData_ = serverCommand::deleteMessageMsg
 		+ deletingMessageID;
 	server.dataTransmission();
+
+	chatLogLine_ = "User "
+		+ loginUser_.getUserID()
+		+ " - Database: the message is deleted. ";
+	logger_.createLogLine(chatLogLine_);
 }
 
 bool Chat::searchUserByLogin(tempUserData* tempUser)
@@ -636,7 +925,14 @@ bool Chat::searchUserByLogin(tempUserData* tempUser)
 	queryString = std::string("SELECT user_id, name, surname, ")
 		+ "status, delivered_message, viewed_message "
 		+ "FROM users WHERE login = '" + tempUser->tempLogin + "'";	
-	queryPrint();
+
+	chatLogLine_ = "Socket "
+		+ std::to_string(server.connection)
+		+ " - Database: user search query. Login: "
+		+ tempUser->tempLogin;
+	logger_.createLogLine(chatLogLine_);
+
+	//queryPrint();
 	if (chatDB.databaseQuery(queryString))
 	{		
 		if (!chatDB.resultQuery_.empty())
@@ -647,37 +943,65 @@ bool Chat::searchUserByLogin(tempUserData* tempUser)
 			tempUser->tempStatus = chatDB.resultQuery_.at(0).at(3);
 			tempUser->tempDeliveredMessage = chatDB.resultQuery_.at(0).at(4);
 			tempUser->tempViewedMessage = chatDB.resultQuery_.at(0).at(5);
-			std::cout << "User " << tempUser->tempLogin << " is found.";
+
+			chatLogLine_ = "User "
+				+ tempUser->tempID
+				+ " - Database: user is found. ";
+			logger_.createLogLine(chatLogLine_);
+			//std::cout << "User " << tempUser->tempLogin << " is found.";
 		}
 		else
 		{
-			std::cout << "User " << tempUser->tempLogin << " isn't found.\n";
+			chatLogLine_ = "Socket "
+				+ std::to_string(server.connection)
+				+ " - Database: user is not found. ";
+			logger_.createLogLine(chatLogLine_);
+
+			//std::cout << "User " << tempUser->tempLogin << " isn't found.\n";
 			return false;
 		}		
 	}
 	else
 	{
 		sendDBErrorMessage();		
+		logger_.createLogLine(chatDB.databaseLog_.str());
 	}
 
 	queryString = std::string("SELECT password_hash ")		
 		+ "FROM users_password WHERE user_ID = " + tempUser->tempID;
-	queryPrint();
+
+	chatLogLine_ = "User "
+		+ tempUser->tempID
+		+ " - Database: get a user password query. ";
+	logger_.createLogLine(chatLogLine_);
+
+	//queryPrint();
 	if (chatDB.databaseQuery(queryString))
 	{
 		if (!chatDB.resultQuery_.empty())
 		{
 			tempUser->tempPasswordHash = chatDB.resultField_;
+
+			chatLogLine_ = "User "
+				+ tempUser->tempID
+				+ " - Database: users password is found. ";
+			logger_.createLogLine(chatLogLine_);
 		}
 		else
 		{
-			std::cout << "Password " << tempUser->tempLogin << " isn't found.";
+			chatLogLine_ = "User "
+				+ tempUser->tempID
+				+ " - Database: users password is not found. ";
+			logger_.createLogLine(chatLogLine_);
+
+			//std::cout << "Password " << tempUser->tempLogin << " isn't found.";
 			return false;
 		}
 	}
 	else
 	{
 		sendDBErrorMessage();
+		logger_.createLogLine(chatDB.databaseLog_.str());
 	}
 	return true;
 }
@@ -688,12 +1012,26 @@ bool Chat::searchUserByName(tempUserData* tempUser, std::string& recipient)
 	queryString = std::string("SELECT user_id, name, surname, ")
 		+ "status, delivered_message, viewed_message "
 		+ "FROM users WHERE name = '" + recipient + "'";
-	queryPrint();
+
+	chatLogLine_ = "User "
+		+ loginUser_.getUserID()
+		+ " - Database: search query for a user by name "
+		+ recipient;
+	logger_.createLogLine(chatLogLine_);
+
+	//queryPrint();
 	if (chatDB.databaseQuery(queryString))
 	{
 		if (chatDB.resultQuery_.empty())
 		{
-			std::cout << "User " << tempUser->tempLogin << " isn't found.";
+			chatLogLine_ = "User "
+				+ loginUser_.getUserID()
+				+ " - Database: User "
+				+ recipient
+				+ " isn't found.";
+			logger_.createLogLine(chatLogLine_);
+			
+			//std::cout << "User " << tempUser->tempLogin << " isn't found.";
 			return false;
 		}
 		else if (chatDB.resultQuery_.size() > 1)
@@ -714,14 +1052,28 @@ bool Chat::searchUserByName(tempUserData* tempUser, std::string& recipient)
 				+ "Select the recipient's number: "
 				+ textColor::resetColor;
 			server.dataTransmission();
+
+			chatLogLine_ = "User "
+				+ loginUser_.getUserID()
+				+ " - Database: User "
+				+ recipient
+				+ " not the only one. Sent userlist.";
+			logger_.createLogLine(chatLogLine_);
+
 			server.dataRecieving();
 			int recipientNumber = std::stoi(server.message) - 1;
 			if (recipientNumber < 0 || recipientNumber > numberOfResultRow)
 			{
 				server.sendData_ = textColor::red
-					+ "Recioient not found... "
+					+ "Recipient not found... "
 					+ textColor::resetColor;
 				server.dataTransmission();
+
+				chatLogLine_ = "User "
+					+ loginUser_.getUserID()
+					+ " - recipient isn't found.";
+				logger_.createLogLine(chatLogLine_);
+
 				return false;
 			}
 			else
@@ -741,11 +1093,19 @@ bool Chat::searchUserByName(tempUserData* tempUser, std::string& recipient)
 			chatDB.resultQuery_.at(numberOfResultRow).at(4);
 		tempUser->tempViewedMessage =
 			chatDB.resultQuery_.at(numberOfResultRow).at(5);
-		std::cout << "User " << tempUser->tempLogin << " is found.";
+
+		chatLogLine_ = "User "
+			+ loginUser_.getUserID()
+			+ " - Database: User "
+			+ recipient
+			+ " is found.";
+		logger_.createLogLine(chatLogLine_);
+		//std::cout << "User " << recipient << " is found.";
 	}
 	else
 	{
 		sendDBErrorMessage();
+		logger_.createLogLine(chatDB.databaseLog_.str());
 	}
 	return true;
 }
@@ -755,12 +1115,27 @@ bool Chat::checkUserFullName(tempUserData* tempUser)
 	queryString = std::string("SELECT user_id ")
 		+ "FROM users WHERE name = '" + tempUser->tempName
 		+ "' AND surname = '" + tempUser->tempSurname + "'";
-	queryPrint();
+
+	chatLogLine_ = "User "
+		+ loginUser_.getUserID()
+		+ " - Database: search query for a user by full name: "
+		+ tempUser->tempName + " "
+		+ tempUser->tempSurname;
+	logger_.createLogLine(chatLogLine_);
+
+	//queryPrint();
 	if (chatDB.databaseQuery(queryString))
 	{
 		if (chatDB.resultQuery_.empty())
 		{					
-			std::cout << "... False\n";
+			chatLogLine_ = "User "
+				+ loginUser_.getUserID()
+				+ " - Database: User "
+				+ tempUser->tempName + " "
+				+ tempUser->tempSurname
+				+ " is not found.";
+			logger_.createLogLine(chatLogLine_);
+			//std::cout << "... False\n";
 			return false;			
 		}
 		tempUser->tempID = chatDB.resultField_;
@@ -769,6 +1144,7 @@ bool Chat::checkUserFullName(tempUserData* tempUser)
 	else
 	{
 		sendDBErrorMessage();
+		logger_.createLogLine(chatDB.databaseLog_.str());
 		return false;
 	}		
 }
@@ -791,12 +1167,17 @@ void Chat::viewChat()
 			queryString = std::string("UPDATE users ")
 				+ "SET viewed_message = " + messageID				
 				+ " WHERE user_id = " + userID;
-			queryPrint();
+			// queryPrint();
 			if (!chatDB.databaseQuery(queryString))
 			{
 				sendDBErrorMessage();
 			}
 			loginUser_.setViewedMessage(messageID);
+
+			chatLogLine_ = "User "
+				+ loginUser_.getUserID()
+				+ " - Database: set the last viewed message. ";				
+			logger_.createLogLine(chatLogLine_);
 		}		
 	} while (true);	
 }
@@ -829,94 +1210,3 @@ void Chat::sendDBErrorMessage()
 		+ textColor::resetColor;
 	server.dataTransmission();
 }
-
-//bool Chat::checkUserLogin(std::string& login)
-//{			
-//	queryString = std::string("SELECT COUNT(search_login_user('")
-//		+ login + "'))";
-//	queryPrint();	
-//	if (chatDB.databaseQuery(queryString))
-//	{
-//		std::string resultField = chatDB.resultQuery_.at(0).at(0);
-//		
-//		if (std::stoi(resultField) > 0)
-//		{						
-//			return true;
-//		}
-//		std::cout << "... False\n";		
-//		return false;		
-//	}
-//	else
-//	{
-//		sendDBErrorMessage();
-//		return false;
-//	}		
-//}
-
-//void Chat::viewUserList()
-//{
-//
-//}
-
-//void Chat::readDataFile(std::string& file)
-//{
-//	std::string readLine;	
-//	std::fstream fileStream(file, std::ios::in);
-//
-//	if (!fileStream)
-//	{
-//		std::cout << "file " << file << " not found...\n!";
-//		std::fstream fileStream(file, std::ios::out | std::ios::app);
-//		std::filesystem::permissions(file,
-//			std::filesystem::perms::group_all | std::filesystem::perms::others_all,
-//			std::filesystem::perm_options::remove);
-//	}
-//	else
-//	{
-//		while (std::getline(fileStream, readLine))
-//		{			
-//			std::cout << file << " read: " << readLine << "\n";
-//			if (file == usersFile_)
-//			{
-//				readUsersFile(readLine);
-//			}
-//			else
-//			{
-//				readMessagesFile(readLine);
-//			}			
-//		}
-//	}
-//
-//	fileStream.close();
-//}
-//
-//void Chat::readUsersFile(std::string& line)
-//{	
-//	std::string login = dataParsing(line);
-//	std::string passwordHash = dataParsing(line);
-//	std::string name = dataParsing(line);
-//
-//	chatUsers_.push_back(User{ login, passwordHash, name });			
-//}
-//
-//void Chat::readMessagesFile(std::string& line)
-//{
-//	std::string from = dataParsing(line);
-//	std::string to = dataParsing(line);
-//	std::string message = dataParsing(line);
-//
-//	chatMessages_.push_back(Message{ from, to, message });
-//}
-//
-//std::string Chat::dataParsing(std::string& data)
-//{
-//	std::string separator{ "|" };
-//	size_t separatorPoint{ data.find(separator) };
-//	if (separatorPoint == std::string::npos)
-//	{
-//		return "Data error...\n";
-//	}
-//	std::string value{ data.substr(0, separatorPoint) };
-//	data.erase(0, separatorPoint + 1);
-//	return value;
-//}

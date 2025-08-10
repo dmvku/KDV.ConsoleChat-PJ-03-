@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <vector>
 #include "/usr/include/mysql/mysql.h"
 
@@ -25,7 +26,8 @@ public:
 	std::vector <std::string> resultRow_;
 	std::vector <std::vector <std::string>> resultQuery_;
 
-	bool databaseQuery(std::string& query);
+	bool databaseQuery(std::string& query);	
+	std::ostringstream databaseLog_;
 	unsigned int mysqlError{ 0 };	
 
 	Database();
